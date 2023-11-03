@@ -16,38 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QFrame" name="frame_2">
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="0">
-        <widget class="QFrame" name="frame_4">
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>MUSIC PLAYER FOR NOW</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     <layout class="QGridLayout" name="gridLayout"/>
     </item>
    </layout>
   </widget>
@@ -56,7 +25,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>799</width>
+     <width>1000</width>
      <height>21</height>
     </rect>
    </property>
