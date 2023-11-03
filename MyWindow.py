@@ -12,6 +12,7 @@ import random
 import time
 from pydub import AudioSegment
 from pydub.playback import play
+from threading import *
 
 
 class MyWindow(QtWidgets.QMainWindow):
@@ -36,14 +37,11 @@ class MyWindow(QtWidgets.QMainWindow):
         self.newplot.name = filename[0]
         self.newplot.SetData(data,fs)
         self.newplot.data_line = self.graphWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
-        #sd.play(data, fs)
-        wave_obj = sa.WaveObject.from_wave_file(path)
+        sd.play(data, fs)
         self.graphWidget1.setXRange(0,10,padding=0)
         self.timer1 = QtCore.QTimer()
-        self.timer1.setInterval(50)
         self.timer1.timeout.connect(self.update_plots)  # Connect to a single update method
-        self.timer1.start()
-        self.play_obj = wave_obj.play()
+        self.timer1.start(100)
         self.graphWidget1.setMouseEnabled(x=False,y=False)
 
     def random_color(self):
@@ -56,11 +54,14 @@ class MyWindow(QtWidgets.QMainWindow):
         # random_rgb = self.random_color()
         # self.newplot.pen = pg.mkPen(color = random_rgb)
         # self.newplot.data_line.setPen(self.newplot.pen)
-        self.timer += 0.10
+        self.timer += 0.126
         # xmin = self.graphWidget1.getViewBox().viewRange()[0][0]
         # xmax = self.graphWidget1.getViewBox().viewRange()[0][1]
         if self.timer > 10:
             self.graphWidget1.setXRange(self.timer-10, self.timer, padding=0)
+        if self.timer > self.newplot.time_axis.max():
+            self.timer1.stop()
+            self.graphWidget1.setXRange(0,self.newplot.time_axis.max())
 
 
     def Stop(self):
