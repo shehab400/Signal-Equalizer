@@ -6,12 +6,12 @@ import simpleaudio as sa
 import sys
 from scipy.io.wavfile import read
 from PlotLine import *
-import sounddevice as sd
-import soundfile as sf
+# import sounddevice as sd
+# import soundfile as sf
 import random
 import time
-from pydub import AudioSegment
-from pydub.playback import play
+# from pydub import AudioSegment
+# from pydub.playback import play
 from threading import *
 
 # from NEW_GUI import Ui_MainWindow
@@ -84,6 +84,37 @@ class MainWindow(QMainWindow):
         layout10=QVBoxLayout()
         layout10.addWidget(self.plotWidget10 )
         self.ui.widget_14.setLayout(layout10)
+        ###
+        layout11=QVBoxLayout()
+        layout11.addWidget(self.plotWidget11 )
+        self.ui.widget_25.setLayout(layout11)
+        layout12=QVBoxLayout()
+        layout12.addWidget(self.plotWidget12 )
+        self.ui.widget_27.setLayout(layout12)
+        layout13=QVBoxLayout()
+        layout13.addWidget(self.plotWidget13 )
+        self.ui.widget_19.setLayout(layout13)
+        layout14=QVBoxLayout()
+        layout14.addWidget(self.plotWidget14 )
+        self.ui.widget_24.setLayout(layout14)
+        layout15=QVBoxLayout()
+        layout15.addWidget(self.plotWidget15 )
+        self.ui.widget_26.setLayout(layout15)
+        layout16=QVBoxLayout()
+        layout16.addWidget(self.plotWidget16 )
+        self.ui.widget_17.setLayout(layout16)
+        layout17=QVBoxLayout()
+        layout17.addWidget(self.plotWidget17 )
+        self.ui.widget_18.setLayout(layout17)
+        layout18=QVBoxLayout()
+        layout18.addWidget(self.plotWidget18 )
+        self.ui.widget_20.setLayout(layout18)
+        layout19=QVBoxLayout()
+        layout19.addWidget(self.plotWidget19 )
+        self.ui.widget_21.setLayout(layout19)
+        layout20=QVBoxLayout()
+        layout20.addWidget(self.plotWidget20 )
+        self.ui.widget_28.setLayout(layout20)
 
 
 
