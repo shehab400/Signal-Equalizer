@@ -7,14 +7,234 @@
     <x>0</x>
     <y>0</y>
     <width>1163</width>
-    <height>757</height>
+    <height>758</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="1">
+     <widget class="QWidget" name="full_menu" native="true">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="minimumSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap>Icons/launchpad.png</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="minimumSize">
+            <size>
+             <width>71</width>
+             <height>31</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>71</width>
+             <height>31</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+             <pointsize>15</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Sidebar</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>7</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="uniformWave">
+           <property name="text">
+            <string>Uniform Wave</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>Icons/wave.png</normaloff>
+             <normalon>Icons/wave.png</normalon>Icons/wave.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>14</width>
+             <height>14</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="music">
+           <property name="text">
+            <string>Music</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>Icons/musical-note.png</normaloff>
+             <normalon>Icons/musical-note.png</normalon>Icons/musical-note.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>14</width>
+             <height>14</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="animals">
+           <property name="text">
+            <string>Animals</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>Icons/lion.png</normaloff>
+             <normalon>Icons/lion.png</normalon>Icons/lion.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>14</width>
+             <height>14</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="medicalSignal">
+           <property name="text">
+            <string>Medical Signal</string>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>Icons/cardiogram.png</normaloff>
+             <normalon>Icons/cardiogram.png</normalon>Icons/cardiogram.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>14</width>
+             <height>14</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>536</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="exit">
+         <property name="text">
+          <string>Exit</string>
+         </property>
+         <property name="icon">
+          <iconset resource="resource.qrc">
+           <normaloff>:/icon/Icons/logout.png</normaloff>
+           <normalon>:/icon/Icons/logout.png</normalon>:/icon/Icons/logout.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>14</width>
+           <height>14</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
     <item row="0" column="2">
      <widget class="QWidget" name="widget_3" native="true">
       <layout class="QGridLayout" name="gridLayout">
@@ -35,9 +255,9 @@
                <string/>
               </property>
               <property name="icon">
-               <iconset resource="resource.qrc">
-                <normaloff>:/icon/Icons/menu.png</normaloff>
-                <normalon>:/icon/Icons/menu.png</normalon>:/icon/Icons/menu.png</iconset>
+               <iconset>
+                <normaloff>Icons/menu.png</normaloff>
+                <normalon>Icons/menu.png</normalon>Icons/menu.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -246,36 +466,28 @@
        </item>
        <item row="1" column="0">
         <widget class="QStackedWidget" name="stackedWidget">
+         <property name="font">
+          <font>
+           <family>Segoe UI</family>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
          <property name="currentIndex">
           <number>2</number>
          </property>
          <widget class="QWidget" name="page">
           <layout class="QGridLayout" name="gridLayout_3">
-           <item row="3" column="0">
-            <widget class="QWidget" name="widget_6" native="true">
-             <property name="maximumSize">
-              <size>
-               <width>627</width>
-               <height>146</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QWidget" name="widget_9" native="true">
-             <property name="maximumSize">
-              <size>
-               <width>313</width>
-               <height>146</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item row="4" column="0">
             <widget class="QWidget" name="widget_8" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>146</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
-               <width>627</width>
+               <width>16777215</width>
                <height>146</height>
               </size>
              </property>
@@ -353,42 +565,12 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QWidget" name="widget_4" native="true">
-             <property name="maximumSize">
-              <size>
-               <width>313</width>
-               <height>146</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="0">
             <widget class="QWidget" name="widget_2" native="true">
              <property name="maximumSize">
               <size>
-               <width>627</width>
-               <height>146</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0" colspan="2">
-            <widget class="QWidget" name="widget_5" native="true">
-             <property name="maximumSize">
-              <size>
                <width>16777215</width>
-               <height>146</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QWidget" name="widget_7" native="true">
-             <property name="maximumSize">
-              <size>
-               <width>313</width>
-               <height>146</height>
+               <height>16777215</height>
               </size>
              </property>
             </widget>
@@ -403,6 +585,7 @@
              </property>
              <property name="font">
               <font>
+               <family>Segoe UI</family>
                <pointsize>16</pointsize>
               </font>
              </property>
@@ -414,54 +597,96 @@
              </property>
             </widget>
            </item>
+           <item row="1" column="1">
+            <widget class="QWidget" name="widget_4" native="true">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QWidget" name="widget_6" native="true">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QWidget" name="widget_9" native="true">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QWidget" name="widget_7" native="true">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="QWidget" name="widget_5" native="true">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="page_2">
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="3" column="0" colspan="2">
-            <widget class="QWidget" name="widget_13" native="true"/>
-           </item>
-           <item row="2" column="0" colspan="3">
-            <widget class="QWidget" name="widget_12" native="true"/>
-           </item>
-           <item row="0" column="0" colspan="3">
-            <widget class="QLabel" name="label_5">
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>50</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Music Equalizer</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
+           <item row="1" column="0">
+            <widget class="QWidget" name="widget_10" native="true">
+             <property name="enabled">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
-           <item row="1" column="2">
+           <item row="1" column="1">
             <widget class="QWidget" name="widget_11" native="true"/>
            </item>
-           <item row="3" column="2">
+           <item row="2" column="0" colspan="2">
+            <widget class="QWidget" name="widget_12" native="true"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QWidget" name="widget_13" native="true"/>
+           </item>
+           <item row="3" column="1">
             <widget class="QWidget" name="widget_14" native="true"/>
            </item>
-           <item row="4" column="2">
-            <widget class="QWidget" name="widget_16" native="true"/>
-           </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QWidget" name="widget_10" native="true"/>
-           </item>
-           <item row="4" column="0" colspan="2">
+           <item row="4" column="0">
             <widget class="QWidget" name="widget_15" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>146</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
-               <width>627</width>
+               <width>16777215</width>
                <height>146</height>
               </size>
              </property>
              <property name="font">
               <font>
+               <family>Segoe UI</family>
                <pointsize>9</pointsize>
               </font>
              </property>
@@ -497,10 +722,239 @@
              </layout>
             </widget>
            </item>
+           <item row="4" column="1">
+            <widget class="QWidget" name="widget_16" native="true"/>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="label_5">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>16</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Music Equalizer</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="page_3"/>
-         <widget class="QWidget" name="page_4"/>
+         <widget class="QWidget" name="page_3">
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="1" column="1">
+            <widget class="QWidget" name="widget_27" native="true">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QWidget" name="widget_23" native="true"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QWidget" name="widget_25" native="true"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QWidget" name="widget_24" native="true"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QWidget" name="widget_22" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>146</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>146</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_7">
+              <item>
+               <widget class="QSlider" name="verticalSlider_15">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="verticalSlider_16">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="verticalSlider_17">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="verticalSlider_18">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="label_6">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>16</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Animals Equalizer</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="QWidget" name="widget_19" native="true"/>
+           </item>
+           <item row="3" column="1">
+            <widget class="QWidget" name="widget_26" native="true"/>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="page_4">
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="1" column="0">
+            <widget class="QWidget" name="widget_17" native="true"/>
+           </item>
+           <item row="1" column="1">
+            <widget class="QWidget" name="widget_18" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="QWidget" name="widget_20" native="true"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QWidget" name="widget_21" native="true"/>
+           </item>
+           <item row="3" column="1">
+            <widget class="QWidget" name="widget_28" native="true"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QWidget" name="widget_29" native="true">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>146</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>146</height>
+              </size>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_8">
+              <item>
+               <widget class="QSlider" name="verticalSlider_19">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="verticalSlider_20">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="verticalSlider_21">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="verticalSlider_22">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QWidget" name="widget_30" native="true"/>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QLabel" name="label_7">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>16</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Medical Signal Equalizer</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -544,7 +998,7 @@
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap resource="resource.qrc">:/icon/Icons/launchpad.png</pixmap>
+            <pixmap>Icons/launchpad.png</pixmap>
            </property>
            <property name="scaledContents">
             <bool>true</bool>
@@ -564,9 +1018,9 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icon/Icons/wave.png</normaloff>
-             <normalon>:/icon/Icons/wave.png</normalon>:/icon/Icons/wave.png</iconset>
+            <iconset>
+             <normaloff>Icons/wave.png</normaloff>
+             <normalon>Icons/wave.png</normalon>Icons/wave.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -588,9 +1042,9 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icon/Icons/musical-note.png</normaloff>
-             <normalon>:/icon/Icons/musical-note.png</normalon>:/icon/Icons/musical-note.png</iconset>
+            <iconset>
+             <normaloff>Icons/musical-note.png</normaloff>
+             <normalon>Icons/musical-note.png</normalon>Icons/musical-note.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -612,9 +1066,9 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icon/Icons/lion.png</normaloff>
-             <normalon>:/icon/Icons/lion.png</normalon>:/icon/Icons/lion.png</iconset>
+            <iconset>
+             <normaloff>Icons/lion.png</normaloff>
+             <normalon>Icons/lion.png</normalon>Icons/lion.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -633,9 +1087,9 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icon/Icons/cardiogram.png</normaloff>
-             <normalon>:/icon/Icons/cardiogram.png</normalon>:/icon/Icons/cardiogram.png</iconset>
+            <iconset>
+             <normaloff>Icons/cardiogram.png</normaloff>
+             <normalon>Icons/cardiogram.png</normalon>Icons/cardiogram.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -661,7 +1115,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>522</height>
+           <height>523</height>
           </size>
          </property>
         </spacer>
@@ -680,221 +1134,6 @@
           <size>
            <width>20</width>
            <height>20</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QWidget" name="full_menu" native="true">
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="spacing">
-        <number>10</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="resource.qrc">:/icon/Icons/launchpad.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="minimumSize">
-            <size>
-             <width>71</width>
-             <height>31</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>71</width>
-             <height>31</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Segoe UI</family>
-             <pointsize>15</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Sidebar</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <property name="spacing">
-          <number>7</number>
-         </property>
-         <item>
-          <widget class="QPushButton" name="unifromWave">
-           <property name="text">
-            <string>Uniform Wave</string>
-           </property>
-           <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icon/Icons/wave.png</normaloff>
-             <normalon>:/icon/Icons/wave.png</normalon>:/icon/Icons/wave.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>14</width>
-             <height>14</height>
-            </size>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="music">
-           <property name="text">
-            <string>Music</string>
-           </property>
-           <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icon/Icons/musical-note.png</normaloff>
-             <normalon>:/icon/Icons/musical-note.png</normalon>:/icon/Icons/musical-note.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>14</width>
-             <height>14</height>
-            </size>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="animals">
-           <property name="text">
-            <string>Animals</string>
-           </property>
-           <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icon/Icons/lion.png</normaloff>
-             <normalon>:/icon/Icons/lion.png</normalon>:/icon/Icons/lion.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>14</width>
-             <height>14</height>
-            </size>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="medicalSignal">
-           <property name="text">
-            <string>Medical Signal</string>
-           </property>
-           <property name="icon">
-            <iconset resource="resource.qrc">
-             <normaloff>:/icon/Icons/cardiogram.png</normaloff>
-             <normalon>:/icon/Icons/cardiogram.png</normalon>:/icon/Icons/cardiogram.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>14</width>
-             <height>14</height>
-            </size>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>535</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="exit">
-         <property name="text">
-          <string>Exit</string>
-         </property>
-         <property name="icon">
-          <iconset resource="resource.qrc">
-           <normaloff>:/icon/Icons/logout.png</normaloff>
-           <normalon>:/icon/Icons/logout.png</normalon>:/icon/Icons/logout.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>14</width>
-           <height>14</height>
           </size>
          </property>
         </widget>
@@ -944,7 +1183,7 @@
   <connection>
    <sender>uniformWave2</sender>
    <signal>toggled(bool)</signal>
-   <receiver>unifromWave</receiver>
+   <receiver>uniformWave</receiver>
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
@@ -990,7 +1229,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>unifromWave</sender>
+   <sender>uniformWave</sender>
    <signal>toggled(bool)</signal>
    <receiver>uniformWave2</receiver>
    <slot>setChecked(bool)</slot>
@@ -1077,7 +1316,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>126</x>
-     <y>712</y>
+     <y>742</y>
     </hint>
     <hint type="destinationlabel">
      <x>159</x>
@@ -1093,7 +1332,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>33</x>
-     <y>709</y>
+     <y>739</y>
     </hint>
     <hint type="destinationlabel">
      <x>45</x>
