@@ -220,9 +220,9 @@
           <string>Exit</string>
          </property>
          <property name="icon">
-          <iconset resource="resource.qrc">
-           <normaloff>:/icon/Icons/logout.png</normaloff>
-           <normalon>:/icon/Icons/logout.png</normalon>:/icon/Icons/logout.png</iconset>
+          <iconset>
+           <normaloff>Icons/logout.png</normaloff>
+           <normalon>Icons/logout.png</normalon>Icons/logout.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1126,9 +1126,9 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="resource.qrc">
-           <normaloff>:/icon/Icons/logout.png</normaloff>
-           <normalon>:/icon/Icons/logout.png</normalon>:/icon/Icons/logout.png</iconset>
+          <iconset>
+           <normaloff>Icons/logout.png</normaloff>
+           <normalon>Icons/logout.png</normalon>Icons/logout.png</iconset>
          </property>
          <property name="iconSize">
           <size>
