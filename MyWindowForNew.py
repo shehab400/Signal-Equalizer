@@ -153,12 +153,3 @@ class MyWindow(QMainWindow):
     def medicalSignal_2_toggled(self):
         self.ui.stackedWidget.setCurrentIndex(3)
 
-
-
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
