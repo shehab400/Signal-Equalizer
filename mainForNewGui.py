@@ -14,12 +14,11 @@ import time
 # from pydub.playback import play
 from threading import *
 
-# from NEW_GUI import Ui_MainWindow
 
-class MainWindow(QMainWindow):
+class MyWindow(QMainWindow):
     def __init__(self):
-        super(MainWindow, self).__init__()
-        self.ui = uic.loadUi("NEW_GUIui.ui", self)
+        super(MyWindow, self).__init__()
+        self.ui = uic.loadUi("GUI.ui", self)
         # self.ui = Ui_MainWindow()
         # self.ui.setupUi(self)
         self.ui.icon_only.hide()
