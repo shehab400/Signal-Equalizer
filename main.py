@@ -1,4 +1,4 @@
-from mainForNewGui import *
+from MyWindowForNew import *
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
