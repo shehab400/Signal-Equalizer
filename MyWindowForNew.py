@@ -32,6 +32,7 @@ class MyWindow(QMainWindow):
         self.ui.medicalSignal2.clicked.connect(self.medicalSignal_2_toggled)
         self.ui.stackedWidget.setCurrentIndex(0)
         self.ui.uniformWave.setChecked(True)
+        self.ui.actionLoad.clicked.connect(self.Load)
         self.plotWidget1 = pg.PlotWidget()
         self.plotWidget2 = pg.PlotWidget()
         self.plotWidget3 = pg.PlotWidget()
@@ -153,3 +154,5 @@ class MyWindow(QMainWindow):
     def medicalSignal_2_toggled(self):
         self.ui.stackedWidget.setCurrentIndex(3)
 
+    def Load(self):
+        pass
