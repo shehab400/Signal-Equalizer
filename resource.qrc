@@ -1,23 +1,21 @@
 <RCC>
   <qresource prefix="icon">
-    <file>Icons/stop-button.png</file>
-    <file>Icons/undo-arrow.png</file>
-    <file>Icons/pause.png</file>
-    <file>Icons/plus.png</file>
-    <file>Icons/rewind1.png</file>
-    <file>Icons/speedometer.png</file>
-    <file>Icons/vertical-line.png</file>
-    <file>Icons/expand-arrows.png</file>
-    <file>Icons/hidden.png</file>
-    <file>Icons/zoom-in.png</file>
-    <file>Icons/zoom-out.png</file>
-    <file>Icons/launchpad.png</file>
+    <file>Icons/all-directions.png</file>
+    <file>Icons/button.png</file>
     <file>Icons/cardiogram.png</file>
+    <file>Icons/equalizer.png</file>
+    <file>Icons/expand-arrows.png</file>
+    <file>Icons/launchpad.png</file>
     <file>Icons/lion.png</file>
     <file>Icons/logout.png</file>
-    <file>Icons/equalizer.png</file>
+    <file>Icons/magnifying-glass in.png</file>
+    <file>Icons/magnifying-glass.png</file>
     <file>Icons/menu.png</file>
     <file>Icons/musical-note.png</file>
+    <file>Icons/speedometer.png</file>
+    <file>Icons/stop-button.png</file>
+    <file>Icons/undo-arrow.png</file>
+    <file>Icons/vertical-line.png</file>
     <file>Icons/wave.png</file>
   </qresource>
 </RCC>

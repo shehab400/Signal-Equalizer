@@ -287,13 +287,44 @@
              </spacer>
             </item>
             <item>
+             <widget class="QPushButton" name="actionLoad">
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>Icons/download.png</normaloff>Icons/download.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>7</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
              <widget class="QPushButton" name="zoomIn">
               <property name="text">
                <string/>
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>Icons/zoom-in.png</normaloff>Icons/zoom-in.png</iconset>
+                <normaloff>Icons/magnifying-glass.png</normaloff>
+                <normalon>Icons/magnifying-glass.png</normalon>Icons/magnifying-glass.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -323,7 +354,8 @@
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>Icons/zoom-out.png</normaloff>Icons/zoom-out.png</iconset>
+                <normaloff>Icons/magnifying-glass in.png</normaloff>
+                <normalon>Icons/magnifying-glass in.png</normalon>Icons/magnifying-glass in.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -353,7 +385,8 @@
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>Icons/pause.png</normaloff>Icons/pause.png</iconset>
+                <normaloff>Icons/button.png</normaloff>
+                <normalon>Icons/button.png</normalon>Icons/button.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -383,7 +416,8 @@
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>Icons/undo-arrow.png</normaloff>Icons/undo-arrow.png</iconset>
+                <normaloff>Icons/undo-arrow.png</normaloff>
+                <normalon>Icons/undo-arrow.png</normalon>Icons/undo-arrow.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -413,7 +447,8 @@
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>Icons/speedometer.png</normaloff>Icons/speedometer.png</iconset>
+                <normaloff>Icons/speedometer.png</normaloff>
+                <normalon>Icons/speedometer.png</normalon>Icons/speedometer.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -443,7 +478,8 @@
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>Icons/stop-button.png</normaloff>Icons/stop-button.png</iconset>
+                <normaloff>Icons/stop-button.png</normaloff>
+                <normalon>Icons/stop-button.png</normalon>Icons/stop-button.png</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -467,7 +503,7 @@
           </font>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page">
           <layout class="QGridLayout" name="gridLayout_3">
