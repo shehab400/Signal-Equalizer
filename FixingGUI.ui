@@ -849,6 +849,13 @@
             <widget class="QWidget" name="page_7">
              <layout class="QHBoxLayout" name="horizontalLayout_8">
               <item>
+               <widget class="QSlider" name="verticalSlider_15">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QSlider" name="verticalSlider_16">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -869,6 +876,10 @@
                 </property>
                </widget>
               </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_10">
+             <layout class="QHBoxLayout" name="horizontalLayout_9">
               <item>
                <widget class="QSlider" name="verticalSlider_19">
                 <property name="orientation">
@@ -876,10 +887,6 @@
                 </property>
                </widget>
               </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="page_10">
-             <layout class="QHBoxLayout" name="horizontalLayout_9">
               <item>
                <widget class="QSlider" name="verticalSlider_20">
                 <property name="orientation">
@@ -896,13 +903,6 @@
               </item>
               <item>
                <widget class="QSlider" name="verticalSlider_22">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSlider" name="verticalSlider_23">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
                 </property>
