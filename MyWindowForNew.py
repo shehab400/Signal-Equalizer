@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, uic, QtCore
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget, plot
-from PyQt5.QtWidgets import (QApplication,QMainWindow,QVBoxLayout,QPushButton,QWidget,QErrorMessage,QMessageBox,QDialog,QScrollBar)
+from PyQt5.QtWidgets import (QApplication,QMainWindow,QVBoxLayout,QPushButton,QWidget,QErrorMessage,QMessageBox,QDialog,QScrollBar,QSlider)
 import simpleaudio as sa
 import sys
 from scipy.io.wavfile import read
@@ -33,6 +33,52 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentIndex(0)
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
+        #
+        self.unifromSlider1 = self.findChild(QSlider, "verticalSlider_1")
+        self.unifromSlider2 = self.findChild(QSlider, "verticalSlider_2")
+        self.unifromSlider3 = self.findChild(QSlider, "verticalSlider_3")
+        self.unifromSlider4 = self.findChild(QSlider, "verticalSlider_4")
+        self.unifromSlider5 = self.findChild(QSlider, "verticalSlider_5")
+        self.unifromSlider6 = self.findChild(QSlider, "verticalSlider_6")
+        self.unifromSlider7 = self.findChild(QSlider, "verticalSlider_7")
+        self.unifromSlider8 = self.findChild(QSlider, "verticalSlider_8")
+        self.unifromSlider9 = self.findChild(QSlider, "verticalSlider_9")
+        self.unifromSlider10 = self.findChild(QSlider, "verticalSlider_10")
+        #
+        # self.ui.unifromSlider1.setMinimum(0)
+        # self.ui.unifromSlider2.setMinimum(0)
+        # self.ui.unifromSlider3.setMinimum(0)
+        # self.ui.unifromSlider4.setMinimum(0)
+        # self.ui.unifromSlider5.setMinimum(0)
+        # self.ui.unifromSlider6.setMinimum(0)
+        # self.ui.unifromSlider7.setMinimum(0)
+        # self.ui.unifromSlider8.setMinimum(0)
+        # self.ui.unifromSlider9.setMinimum(0)
+        # self.ui.unifromSlider10.setMinimum(0)
+        # #
+        # self.unifromSlider1.setMaximum(10)
+        # self.unifromSlider2.setMaximum(10)
+        # self.unifromSlider3.setMaximum(10)
+        # self.unifromSlider4.setMaximum(10)
+        # self.unifromSlider5.setMaximum(10)
+        # self.unifromSlider6.setMaximum(10)
+        # self.unifromSlider7.setMaximum(10)
+        # self.unifromSlider8.setMaximum(10)
+        # self.unifromSlider9.setMaximum(10)
+        # self.unifromSlider10.setMaximum(10)
+        # #
+        # self.unifromSlider1.setValue(5)
+        # self.unifromSlider2.setValue(5)
+        # self.unifromSlider3.setValue(5)
+        # self.unifromSlider4.setValue(5)
+        # self.unifromSlider5.setValue(5)
+        # self.unifromSlider6.setValue(5)
+        # self.unifromSlider7.setValue(5)
+        # self.unifromSlider8.setValue(5)
+        # self.unifromSlider9.setValue(5)
+        # self.unifromSlider10.setValue(5)
+        # #
+
         self.plotWidget1 = pg.PlotWidget()
         self.plotWidget2 = pg.PlotWidget()
         self.plotWidget3 = pg.PlotWidget()
