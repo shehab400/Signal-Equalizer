@@ -1,7 +1,7 @@
-from mainForNewGui import *
+from MyWindowForNew import *
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = MyWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec_())   
