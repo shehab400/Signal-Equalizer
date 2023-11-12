@@ -1,7 +1,8 @@
 from PyQt5 import QtWidgets, uic, QtCore
+from PyQt5.QtCore import QThread,QObject,pyqtSignal as Signal, pyqtSlot as Slot
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget, plot
-from PyQt5.QtWidgets import (QApplication,QMainWindow,QVBoxLayout,QPushButton,QWidget,QErrorMessage,QMessageBox,QDialog,QScrollBar,QSlider)
+from PyQt5.QtWidgets import QApplication,QMainWindow,QVBoxLayout,QPushButton,QWidget,QErrorMessage,QMessageBox,QDialog,QScrollBar,QSlider
 import simpleaudio as sa
 import sys
 from scipy.io.wavfile import read
@@ -13,14 +14,31 @@ import time
 from pydub import AudioSegment
 from pydub.playback import play
 from threading import *
+import numpy as np
+import math
+import audio2numpy as a2n
 
+
+class Worker(QObject):
+    progress = Signal(int)
+    completed = Signal(int)
+    @Slot(int)
+    def do_work(self, n):
+        global i
+        for i in np.arange(1,n+1,0.1):
+            time.sleep(0.1)
+            self.progress.emit(i)
+        self.completed.emit(i)
 
 class MyWindow(QMainWindow):
+    work_requested = Signal(int)
+
     def __init__(self):
         super(MyWindow, self).__init__()
         self.ui = uic.loadUi("FixingGUI.ui", self)
         # self.ui = Ui_MainWindow()
         # self.ui.setupUi(self)
+        self.setWindowTitle('Signal Equalizer')
         self.ui.icon_only.hide()
         self.ui.uniformWave.clicked.connect(self.uniformWave_1_toggled)
         self.ui.music.clicked.connect(self.music_1_toggled)
@@ -33,6 +51,21 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentIndex(0)
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
+
+        self.worker = Worker()
+        self.worker_thread = QThread()
+
+        self.worker.progress.connect(self.UpdatePlots)
+        self.worker.completed.connect(self.Complete)
+
+        self.work_requested.connect(self.worker.do_work)
+
+        # move worker to the worker thread
+        self.worker.moveToThread(self.worker_thread)
+
+        # start the thread
+        self.worker_thread.start()
+
         #
         self.unifromSlider1 = self.findChild(QSlider, "verticalSlider")
         self.unifromSlider2 = self.findChild(QSlider, "verticalSlider_2")
@@ -222,17 +255,28 @@ class MyWindow(QMainWindow):
     def Load(self):
         filename = QtWidgets.QFileDialog.getOpenFileName()
         path = filename[0]
-        data, fs = sf.read(path, dtype='float32')
+        if path.endswith('.wav'):
+            data, fs = sf.read(path, dtype='float32')
+        elif path.endswith('.mp3'):
+            data, fs = a2n.audio_from_file(path)
         self.newplot = PlotLine()
-        self.newplot.name = filename[0]
+        self.newplot.name = path
         self.newplot.SetData(data,fs)
-        self.newplot.data_line = self.graphWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
+        self.newplot.data_line = self.plotWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
         sd.play(data, fs)
-        self.graphWidget1.setXRange(0,10,padding=0)
-        self.timer1 = QtCore.QTimer()
-        self.timer1.timeout.connect(self.UpdatePlots)  # Connect to a single update method
-        self.timer1.start(100)
-        self.graphWidget1.setMouseEnabled(x=False,y=False)
+        #wave_obj = sa.WaveObject.from_wave_file(path)
+        #self.play_obj = wave_obj.play()
+        self.plotWidget1.setXRange(0,10,padding=0)
+        self.plotWidget1.setMouseEnabled(x=False,y=False)
+        self.work_requested.emit(math.ceil(self.newplot.time_axis.max()))
 
     def UpdatePlots(self):
-        pass
+        # random_rgb = self.random_color()
+        # self.newplot.pen = pg.mkPen(color = random_rgb)
+        # self.newplot.data_line.setPen(self.newplot.pen)
+        xmin = self.plotWidget1.getViewBox().viewRange()[0][0]
+        xmax = self.plotWidget1.getViewBox().viewRange()[0][1]
+        self.plotWidget1.setXRange(xmin+0.1, xmax+0.1, padding=0)
+
+    def Complete(self):
+        self.plotWidget1.setXRange(0,self.newplot.time_axis.max())
