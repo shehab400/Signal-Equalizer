@@ -17,6 +17,8 @@ from threading import *
 import numpy as np
 import math
 import audio2numpy as a2n
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 
 
 class Worker(QObject):
@@ -57,6 +59,7 @@ class MyWindow(QMainWindow):
 
         self.worker.progress.connect(self.UpdatePlots)
         self.worker.completed.connect(self.Complete)
+        
 
         self.work_requested.connect(self.worker.do_work)
 
@@ -181,6 +184,13 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider2.setTickPosition(QSlider.TicksLeft)
         self.medicalSignalSlider3.setTickPosition(QSlider.TicksLeft)
         self.medicalSignalSlider4.setTickPosition(QSlider.TicksLeft)
+        # connect uniform sliders to the uniform function
+        for slider in [
+            self.unifromSlider1, self.unifromSlider2, self.unifromSlider3, self.unifromSlider4,
+            self.unifromSlider5, self.unifromSlider6, self.unifromSlider7, self.unifromSlider8,
+            self.unifromSlider9, self.unifromSlider10
+        ]:
+            slider.valueChanged.connect(self.update_frequency_components)
         #
         self.plotWidget1 = pg.PlotWidget()
         self.plotWidget2 = pg.PlotWidget()
@@ -261,6 +271,7 @@ class MyWindow(QMainWindow):
             data, fs = a2n.audio_from_file(path)
         self.newplot = PlotLine()
         self.newplot.name = path
+        self.newplot.fs=fs
         self.newplot.SetData(data,fs)
         self.newplot.data_line = self.plotWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
         sd.play(data, fs)
@@ -268,6 +279,9 @@ class MyWindow(QMainWindow):
         #self.play_obj = wave_obj.play()
         self.plotWidget1.setXRange(0,10,padding=0)
         self.plotWidget1.setMouseEnabled(x=False,y=False)
+         # Generate and display the spectrogram
+        # self.generate_spectrogram(self.newplot.time_axis, self.newplot.sound_axis, fs)
+
         self.work_requested.emit(math.ceil(self.newplot.time_axis.max()))
 
     def UpdatePlots(self):
@@ -280,3 +294,72 @@ class MyWindow(QMainWindow):
 
     def Complete(self):
         self.plotWidget1.setXRange(0,self.newplot.time_axis.max())
+        
+    def generate_spectrogram(self, time_axis, sound_axis, fs):
+    # Calculate the spectrogram using numpy and scipy
+        f, t, Sxx = np.histogram2d(
+            sound_axis,
+            time_axis,
+            bins=(128, 128),  # Reduce the number of bins
+            range=[[sound_axis.min(), sound_axis.max()], [time_axis.min(), time_axis.max()]]
+        )
+
+        # Create a PlotItem for the spectrogram
+        img = pg.ImageItem()
+        img.setImage(Sxx.T, autoLevels=True)
+        img.scale((time_axis.max() - time_axis.min()) / Sxx.shape[0], (sound_axis.max() - sound_axis.min()) / Sxx.shape[1])
+
+        # Set axis labels
+        img.getView().setLabels(bottom='Time (s)', left='Frequency (Hz)')
+
+        # Add the spectrogram to the PlotWidget
+        self.plotWidget2.addItem(img)
+
+    def update_frequency_components(self):
+        # Compute the Fourier Transform
+        spectrum = np.fft.fft(self.newplot.sound_axis)
+
+        # Calculate the frequency resolution and create the frequency axis
+        time_step = 1.0 / self.newplot.fs
+        frequency_axis = np.fft.fftfreq(len(self.newplot.sound_axis), time_step)
+
+        # Find the positive frequencies (ignore negative frequencies)
+        positive_freq_indices = np.where(frequency_axis > 0)
+
+        # Get the minimum and maximum frequencies
+        signal_min_freq = frequency_axis[positive_freq_indices].min()
+        signal_max_freq = frequency_axis[positive_freq_indices].max()
+
+        # Get the slider values
+        uniform_sliders = [
+            self.unifromSlider1, self.unifromSlider2, self.unifromSlider3, self.unifromSlider4,
+            self.unifromSlider5, self.unifromSlider6, self.unifromSlider7, self.unifromSlider8,
+            self.unifromSlider9, self.unifromSlider10
+        ]
+
+        # Calculate the frequency range for each slider based on the loaded signal's range
+        frequency_ranges = [
+            (
+                signal_min_freq + i * (signal_max_freq - signal_min_freq) / 10,
+                signal_min_freq + (i + 1) * (signal_max_freq - signal_min_freq) / 10
+            ) for i in range(10)
+        ]
+
+        # Initialize an array for the modified signal
+        modified_signal = np.zeros_like(self.newplot.sound_axis)
+
+        # Adjust the amplitudes based on the slider values
+        for slider, (freq_min, freq_max) in zip(uniform_sliders, frequency_ranges):
+            amplitude = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+
+            # Filter the signal within the frequency range and update amplitudes
+            indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+            modified_signal[indices] += amplitude * self.newplot.sound_axis[indices]
+
+        # Update the plot with the modified signal
+        self.plotWidget3.clear()
+        self.newplot.data_line = self.plotWidget3.plot(
+            self.newplot.time_axis, modified_signal, name=self.newplot.name
+        )
+        self.plotWidget3.setXRange(0, self.newplot.time_axis.max())
+        self.plotWidget3.setMouseEnabled(x=False, y=False)
