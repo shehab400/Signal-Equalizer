@@ -316,8 +316,8 @@ class MyWindow(QMainWindow):
         self.plotWidget2.addItem(img)
 
     def update_frequency_components(self):
-        # Compute the Fourier Transform
-        spectrum = np.fft.fft(self.newplot.sound_axis)
+        # Compute the Fourier Transform for the original signal
+        original_spectrum = np.fft.fft(self.newplot.sound_axis)
 
         # Calculate the frequency resolution and create the frequency axis
         time_step = 1.0 / self.newplot.fs
@@ -345,21 +345,48 @@ class MyWindow(QMainWindow):
             ) for i in range(10)
         ]
 
-        # Initialize an array for the modified signal
-        modified_signal = np.zeros_like(self.newplot.sound_axis)
+        # Initialize an array for the modified spectrum
+        modified_spectrum = np.copy(original_spectrum)
 
-        # Adjust the amplitudes based on the slider values
+        # Adjust the magnitudes based on the slider values, with increased amplification
         for slider, (freq_min, freq_max) in zip(uniform_sliders, frequency_ranges):
-            amplitude = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+            amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+            amplitude = amplification_factor * 2  # Square the amplitude for increased effect
 
-            # Filter the signal within the frequency range and update amplitudes
+            # Find the indices of the frequency range
             indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-            modified_signal[indices] += amplitude * self.newplot.sound_axis[indices]
 
-        # Update the plot with the modified signal
+            # Adjust the magnitude in the frequency domain
+            modified_spectrum[indices] *= amplitude
+
+        # Update the plot with the original signal and the modified signal in the frequency domain
+        self.plotWidget2.clear()
+        self.plotWidget2.plot(
+            frequency_axis[positive_freq_indices],
+            np.abs(original_spectrum[positive_freq_indices]),
+            pen='b',
+            name='Original Spectrum'
+        )
+        self.plotWidget2.setLabel('left', 'Amplitude')
+        self.plotWidget2.setLabel('bottom', 'Frequency (Hz)')
+
         self.plotWidget3.clear()
-        self.newplot.data_line = self.plotWidget3.plot(
+        self.plotWidget3.plot(
+            frequency_axis[positive_freq_indices],
+            np.abs(modified_spectrum[positive_freq_indices]),
+            pen='r',
+            name='Modified Spectrum'
+        )
+        self.plotWidget3.setLabel('left', 'Amplitude')
+        self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
+
+        # Compute the inverse Fourier Transform to get the modified signal
+        modified_signal = np.fft.ifft(modified_spectrum).real
+
+        # Update the plot with the modified signal in the time domain
+        self.plotWidget4.clear()
+        self.newplot.data_line = self.plotWidget4.plot(
             self.newplot.time_axis, modified_signal, name=self.newplot.name
         )
-        self.plotWidget3.setXRange(0, self.newplot.time_axis.max())
-        self.plotWidget3.setMouseEnabled(x=False, y=False)
+        self.plotWidget4.setXRange(0, self.newplot.time_axis.max())
+        self.plotWidget4.setMouseEnabled(x=False, y=False)
