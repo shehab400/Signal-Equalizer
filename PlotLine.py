@@ -8,6 +8,7 @@ class PlotLine:
         self.data_line = None
         self.pen = None
         self.name = None
+        self.fs=None
 
     def SetData(self,data, fs):
         n = len(data)  # the length of the arrays contained in data
