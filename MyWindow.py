@@ -19,7 +19,7 @@ import math
 import audio2numpy as a2n
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
-
+import pygame
 
 class Worker(QObject):
     progress = Signal(int)
@@ -27,8 +27,8 @@ class Worker(QObject):
     @Slot(int)
     def do_work(self, n):
         global i
-        for i in np.arange(1,n+1,0.1):
-            time.sleep(0.1)
+        for i in np.arange(1,n+1,0.05):
+            time.sleep(0.05)
             self.progress.emit(i)
         self.completed.emit(i)
 
@@ -54,6 +54,7 @@ class MyWindow(QMainWindow):
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
 
+        pygame.mixer.init()
         self.worker = Worker()
         self.worker_thread = QThread()
 
@@ -263,26 +264,32 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget_2.setCurrentIndex(3)
 
     def Load(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName()
-        path = filename[0]
-        if path.endswith('.wav'):
-            data, fs = sf.read(path, dtype='float32')
-        elif path.endswith('.mp3'):
-            data, fs = a2n.audio_from_file(path)
-        self.newplot = PlotLine()
-        self.newplot.name = path
-        self.newplot.fs=fs
-        self.newplot.SetData(data,fs)
-        self.newplot.data_line = self.plotWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
-        sd.play(data, fs)
-        #wave_obj = sa.WaveObject.from_wave_file(path)
-        #self.play_obj = wave_obj.play()
-        self.plotWidget1.setXRange(0,10,padding=0)
-        self.plotWidget1.setMouseEnabled(x=False,y=False)
-         # Generate and display the spectrogram
-        # self.generate_spectrogram(self.newplot.time_axis, self.newplot.sound_axis, fs)
+        if self.ui.stackedWidget.currentIndex() == 1:
+            filename = QtWidgets.QFileDialog.getOpenFileName()
+            path = filename[0]
+            if path.endswith('.wav'):
+                data, fs = sf.read(path, dtype='float32')
+            elif path.endswith('.mp3'):
+                data, fs = a2n.audio_from_file(path)
+            else:
+                return
+            self.newplot = PlotLine()
+            self.newplot.name = path
+            self.newplot.fs=fs
+            self.newplot.SetData(data,fs)
+            self.newplot.data_line = self.plotWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
+            #sd.play(data, fs)
+            pygame.mixer.music.load(path)
+            pygame.mixer.music.play()
+            self.plotWidget1.setXRange(0,10,padding=0)
+            self.plotWidget1.setMouseEnabled(x=False,y=False)
+            # Generate and display the spectrogram
+            # self.generate_spectrogram(self.newplot.time_axis, self.newplot.sound_axis, fs)
 
-        self.work_requested.emit(math.ceil(self.newplot.time_axis.max()))
+            self.work_requested.emit(math.ceil(self.newplot.time_axis.max()))
+
+    def ComposedLoad(self):
+        pass
 
     def UpdatePlots(self):
         # random_rgb = self.random_color()
@@ -290,7 +297,7 @@ class MyWindow(QMainWindow):
         # self.newplot.data_line.setPen(self.newplot.pen)
         xmin = self.plotWidget1.getViewBox().viewRange()[0][0]
         xmax = self.plotWidget1.getViewBox().viewRange()[0][1]
-        self.plotWidget1.setXRange(xmin+0.1, xmax+0.1, padding=0)
+        self.plotWidget1.setXRange(pygame.mixer.music.get_pos()/1000, (pygame.mixer.music.get_pos()/1000)+10, padding=0)
 
     def Complete(self):
         self.plotWidget1.setXRange(0,self.newplot.time_axis.max())
