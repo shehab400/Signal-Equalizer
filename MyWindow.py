@@ -20,6 +20,7 @@ import audio2numpy as a2n
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import pygame
+import os
 
 class Worker(QObject):
     progress = Signal(int)
@@ -27,8 +28,8 @@ class Worker(QObject):
     @Slot(int)
     def do_work(self, n):
         global i
-        for i in np.arange(1,n+1,0.05):
-            time.sleep(0.05)
+        for i in np.arange(1,n+1,0.1):
+            time.sleep(0.1)
             self.progress.emit(i)
         self.completed.emit(i)
 
@@ -53,10 +54,13 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentIndex(0)
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
+        self.ui.verticalSlider_11.valueChanged.connect(self.KeyboardAdjustor)
 
         pygame.mixer.init()
         self.worker = Worker()
         self.worker_thread = QThread()
+
+        self.sounds = None
 
         self.worker.progress.connect(self.UpdatePlots)
         self.worker.completed.connect(self.Complete)
@@ -265,38 +269,68 @@ class MyWindow(QMainWindow):
 
     def Load(self):
         if self.ui.stackedWidget.currentIndex() == 1:
-            filename = QtWidgets.QFileDialog.getOpenFileName()
-            path = filename[0]
-            if path.endswith('.wav'):
-                data, fs = sf.read(path, dtype='float32')
-            elif path.endswith('.mp3'):
-                data, fs = a2n.audio_from_file(path)
-            else:
-                return
-            self.newplot = PlotLine()
-            self.newplot.name = path
-            self.newplot.fs=fs
-            self.newplot.SetData(data,fs)
-            self.newplot.data_line = self.plotWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
-            #sd.play(data, fs)
-            pygame.mixer.music.load(path)
+            self.ComposedLoad()
+
+    def ComposedLoad(self):
+        if self.ui.stackedWidget.currentIndex() == 1:
+            self.sounds = []
+            for i in range(4):
+                filename = QtWidgets.QFileDialog.getOpenFileName()
+                path = filename[0]
+                self.sounds.append(AudioSegment.from_mp3(path))
+                
+            self.UpdateComposed()
+
+            pygame.mixer.music.load("ComposedSound.mp3")
             pygame.mixer.music.play()
+
             self.plotWidget1.setXRange(0,10,padding=0)
             self.plotWidget1.setMouseEnabled(x=False,y=False)
-            # Generate and display the spectrogram
-            # self.generate_spectrogram(self.newplot.time_axis, self.newplot.sound_axis, fs)
 
             self.work_requested.emit(math.ceil(self.newplot.time_axis.max()))
 
-    def ComposedLoad(self):
-        pass
+    def UpdateComposed(self):
+        #self.SoundMerge(self.sounds[0],self.sounds[1],self.sounds[2],self.sounds[3])
+        data, fs = a2n.audio_from_file("ComposedSound.mp3")
+        
+        self.newplot = PlotLine()
+        self.newplot.name = "ComposedSound"
+        self.newplot.fs=fs
+        self.newplot.SetData(data,fs)
+        self.plotWidget1.clear()
+        self.newplot.data_line = self.plotWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
+
+    def SoundMerge(self,sound0,sound1,sound2,sound3):
+        self.composed = sound0.overlay(sound1,position=0)
+        self.composed = self.composed.overlay(sound2,position=0)
+        self.composed = self.composed.overlay(sound3,position=0)
+        self.composed.export("ComposedSound.mp3",format="mp3")
+
+    def KeyboardAdjustor(self):
+        if self.sounds != None:
+            NewSound = self.sounds[0] + ((self.musicSlider1.value()-5)*2)
+            pos = pygame.mixer.music.get_pos()
+            pygame.mixer.music.unload()
+            if os.path.exists('ComposedSound.mp3'):
+                os.remove("ComposedSound.mp3")
+            self.SoundMerge(NewSound,self.sounds[1],self.sounds[2],self.sounds[3])
+            self.UpdateComposed()
+            pygame.mixer.music.load("ComposedSound.mp3")
+            pygame.mixer.music.play()
+            #pygame.mixer.music.set_pos(pos)
+
+    def random_color(self):
+        red = random.randint(0,255)
+        green = random.randint(0,255)
+        blue = random.randint(0,255)
+        
+        return (red,green,blue)
+    
 
     def UpdatePlots(self):
         # random_rgb = self.random_color()
         # self.newplot.pen = pg.mkPen(color = random_rgb)
         # self.newplot.data_line.setPen(self.newplot.pen)
-        xmin = self.plotWidget1.getViewBox().viewRange()[0][0]
-        xmax = self.plotWidget1.getViewBox().viewRange()[0][1]
         self.plotWidget1.setXRange(pygame.mixer.music.get_pos()/1000, (pygame.mixer.music.get_pos()/1000)+10, padding=0)
 
     def Complete(self):
