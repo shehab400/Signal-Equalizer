@@ -279,6 +279,7 @@ class MyWindow(QMainWindow):
                 path = filename[0]
                 self.sounds.append(AudioSegment.from_mp3(path))
                 
+            self.SoundMerge(self.sounds[0],self.sounds[1],self.sounds[2],self.sounds[3])
             self.UpdateComposed()
 
             pygame.mixer.music.load("ComposedSound.mp3")
@@ -290,7 +291,6 @@ class MyWindow(QMainWindow):
             self.work_requested.emit(math.ceil(self.newplot.time_axis.max()))
 
     def UpdateComposed(self):
-        #self.SoundMerge(self.sounds[0],self.sounds[1],self.sounds[2],self.sounds[3])
         data, fs = a2n.audio_from_file("ComposedSound.mp3")
         
         self.newplot = PlotLine()
@@ -317,7 +317,7 @@ class MyWindow(QMainWindow):
             self.UpdateComposed()
             pygame.mixer.music.load("ComposedSound.mp3")
             pygame.mixer.music.play()
-            #pygame.mixer.music.set_pos(pos)
+            pygame.mixer.music.set_pos(pos/1000)
 
     def random_color(self):
         red = random.randint(0,255)
@@ -332,6 +332,7 @@ class MyWindow(QMainWindow):
         # self.newplot.pen = pg.mkPen(color = random_rgb)
         # self.newplot.data_line.setPen(self.newplot.pen)
         self.plotWidget1.setXRange(pygame.mixer.music.get_pos()/1000, (pygame.mixer.music.get_pos()/1000)+10, padding=0)
+        #self.timePos = pygame.mixer.get_pos()/1000
 
     def Complete(self):
         self.plotWidget1.setXRange(0,self.newplot.time_axis.max())
