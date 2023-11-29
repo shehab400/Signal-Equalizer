@@ -216,6 +216,14 @@ class MyWindow(QMainWindow):
         self.matplotlib_widget = FigureCanvasQTAgg(self.matplotlib_figure)
         self.matplotlib_axes.set_facecolor('black')
         self.matplotlib_figure.patch.set_facecolor('black')
+        ####
+        self.matplotlib_figure2, self.matplotlib_axes2 = plt.subplots()
+        self.matplotlib_axes2.set_axis_off()  # Turn off axes for spectrogram
+
+        # Create Matplotlib widget to embed in PyQT layout
+        self.matplotlib_widget2 = FigureCanvasQTAgg(self.matplotlib_figure)
+        self.matplotlib_axes2.set_facecolor('black')
+        self.matplotlib_figure2.patch.set_facecolor('black')
 
         # Add Matplotlib widget to the layout
         # self.ui.verticalLayout.addWidget(self.matplotlib_widget)
@@ -232,7 +240,7 @@ class MyWindow(QMainWindow):
         layout4.addWidget(self.plotWidget4 )
         self.ui.widget_6.setLayout(layout4)
         layout5=QVBoxLayout()
-        layout5.addWidget(self.plotWidget5 )
+        layout5.addWidget(self.matplotlib_widget2 )
         self.ui.widget_7.setLayout(layout5)
         layout6=QVBoxLayout()
         layout6.addWidget(self.plotWidget6 )
@@ -318,7 +326,7 @@ class MyWindow(QMainWindow):
             self.input.SetData(data,fs)
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
-            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs)
+            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.update_frequency_components()
 
             # pygame.mixer.music.load(path)
@@ -389,7 +397,7 @@ class MyWindow(QMainWindow):
     def Complete(self):
         self.plotWidget1.setXRange(0,self.input.time_axis.max())
         
-    def generate_spectrogram(self, time_axis, sound_axis, fs):
+    def generate_spectrogram(self, time_axis, sound_axis, fs,flag):
         # f, t, Sxx = scipy.signal.spectrogram(
         #     sound_axis,
         #     fs=fs,
@@ -416,21 +424,31 @@ class MyWindow(QMainWindow):
         # self.plotWidget2.setLabel('bottom', "Time", units='s')
         # self.plotWidget2.setLabel('left', "Frequency", units='Hz')
         # Create a Matplotlib figure and canvas
-        
-        Pxx, frequencies, times, img = self.matplotlib_axes.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
-        # Draw the Matplotlib figure
-        self.matplotlib_widget.draw()
-        # Clear the existing content in the Matplotlib figure
-        self.matplotlib_axes.clear()
-        # Plot the spectrogram in the Matplotlib figure
-        self.matplotlib_axes.pcolormesh(times, frequencies, 10 * np.log10(Pxx), shading='auto', cmap='viridis')
-        self.matplotlib_axes.set_xlabel('Time (s)')
-        self.matplotlib_axes.set_ylabel('Frequency (Hz)')
-        self.matplotlib_axes.set_title('Spectrogram')
-
+        if flag==1:
+            Pxx, frequencies, times, img = self.matplotlib_axes.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
+            # Draw the Matplotlib figure
+            self.matplotlib_widget.draw()
+            # Clear the existing content in the Matplotlib figure
+            self.matplotlib_axes.clear()
+            # Plot the spectrogram in the Matplotlib figure
+            self.matplotlib_axes.pcolormesh(times, frequencies, 10 * np.log10(Pxx), shading='auto', cmap='viridis')
+            self.matplotlib_axes.set_xlabel('Time (s)')
+            self.matplotlib_axes.set_ylabel('Frequency (Hz)')
+            self.matplotlib_axes.set_title('Spectrogram')
+        if flag==2:
+            Pxx, frequencies, times, img = self.matplotlib_axes2.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
+            # Draw the Matplotlib figure
+            self.matplotlib_widget2.draw()
+            # Clear the existing content in the Matplotlib figure
+            self.matplotlib_axes2.clear()
+            # Plot the spectrogram in the Matplotlib figure
+            self.matplotlib_axes2.pcolormesh(times, frequencies, 10 * np.log10(Pxx), shading='auto', cmap='viridis')
+            self.matplotlib_axes2.set_xlabel('Time (s)')
+            self.matplotlib_axes2.set_ylabel('Frequency (Hz)')
+            self.matplotlib_axes2.set_title('Spectrogram')
         # Update the colorbar
-        if hasattr(self.matplotlib_axes, 'get_images') and len(self.matplotlib_axes.get_images()) > 0:
-            self.matplotlib_figure.colorbar(self.matplotlib_axes.get_images()[0], ax=self.matplotlib_axes)
+        if hasattr(self.matplotlib_axes2, 'get_images') and len(self.matplotlib_axes2.get_images()) > 0:
+            self.matplotlib_figure.colorbar(self.matplotlib_axes2.get_images()[0], ax=self.matplotlib_axes2)
     
     def update_frequency_components(self):
         # Compute the Fourier Transform for the original signal
@@ -506,6 +524,7 @@ class MyWindow(QMainWindow):
         self.input.data_line = self.plotWidget4.plot(
             self.input.time_axis, modified_signal, name=self.input.name
         )
+        self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
         # self.plotWidget4.setXRange(0, self.input.time_axis.max())
         self.plotWidget4.setLabel('left', 'Amplitude')
         self.plotWidget4.setLabel('bottom', 'Frequency (Hz)')
