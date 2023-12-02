@@ -336,6 +336,35 @@ class MyWindow(QMainWindow):
             self.plotWidget1.setMouseEnabled(x=False,y=False)
 
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
+        if self.ui.stackedWidget.currentIndex() == 3: 
+            filename = QtWidgets.QFileDialog.getOpenFileName()
+            path = filename[0]
+            with open(path, 'rb') as file:
+                # Read binary data
+                binary_data = file.read()
+                
+                # Convert binary data to a 1D array of integers
+                values = np.frombuffer(binary_data, dtype=np.int32)
+                
+               #fs is already known in medical signals
+                fs = 500.0  # Sample rate in Hz
+                
+                # Calculate time values
+                time_values = np.arange(0, len(values) / fs, 1 / fs)
+            
+            self.input = PlotLine()
+            self.input.name = path
+            self.input.fs=fs
+            self.input.time_axis=time_values
+            self.input.sound_axis=values
+            self.plotWidget1.clear()
+            self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
+            self.plotWidget1.setXRange(0,10,padding=0)
+            self.plotWidget1.setMouseEnabled(x=False,y=False)
+            # self.update_frequency_components()
+            self.arrhythmiaRemoval()
+            self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
 
     def UpdateComposed(self):
@@ -381,10 +410,11 @@ class MyWindow(QMainWindow):
         # random_rgb = self.random_color()
         # self.input.pen = pg.mkPen(color = random_rgb)
         # self.input.data_line.setPen(self.input.pen)
-        if self.ui.stackedWidget.currentIndex() == 0:
+        if self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
             xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
             xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
             self.plotWidget1.setXRange(xmin+0.1,xmax+0.1,padding=0)
+        
         else:
            self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
         #self.timePos = pygame.mixer.get_pos()/1000
@@ -524,7 +554,7 @@ class MyWindow(QMainWindow):
         self.input.data_line = self.plotWidget4.plot(
             self.input.time_axis, modified_signal, name=self.input.name
         )
-        self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
+        # self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
         # self.plotWidget4.setXRange(0, self.input.time_axis.max())
         self.plotWidget4.setLabel('left', 'Amplitude')
         self.plotWidget4.setLabel('bottom', 'Frequency (Hz)')
@@ -538,4 +568,24 @@ class MyWindow(QMainWindow):
             np.abs(modified_spectrum[positive_freq_indices]),
             pen='r',
             name='Modified Spectrum'
-        )
+        )   
+    def arrhythmiaRemoval(self):
+        signal = np.frombuffer(self.input.sound_axis, dtype=np.int32)
+
+        # Determine the number of rows (adjust as needed based on your data)
+        num_rows = len(signal) // 2
+
+        # Reshape the 1D array to a 2D array
+        signal_2d = signal.reshape((num_rows, -1))
+
+        # Extract the desired column
+        column_data = signal_2d[:, 1]
+
+        # Compute the FFT on the extracted column
+        fft_result = np.fft.fft(column_data)
+
+        # Calculate the frequency axis
+        fs = 500.0  # fs for any medical signal from physionet 
+        frequencies = np.fft.fftfreq(len(column_data), 1/fs)
+        positive_freq_indices = np.where(frequencies > 0)
+        self.plotFrequencyDomian(frequencies,fft_result,positive_freq_indices)
