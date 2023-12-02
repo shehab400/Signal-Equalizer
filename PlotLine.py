@@ -15,7 +15,6 @@ class PlotLine:
         # Working with stereo audio, there are two channels in the audio data.
         # Let's retrieve each channel seperately:
         ch1 = np.array([data[i][0] for i in range(n)])  # channel 1
-        ch2 = np.array([data[i][1] for i in range(n)])  # channel 2
 
         # x-axis and y-axis to plot the audio data
         self.time_axis = np.linspace(0, n / fs, n, endpoint=False)

@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, uic, QtCore
+from PyQt5 import QtWidgets, uic, QtCore,QtGui
 from PyQt5.QtCore import QThread,QObject,pyqtSignal as Signal, pyqtSlot as Slot
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget, plot
@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication,QMainWindow,QVBoxLayout,QPushButton,QWi
 import simpleaudio as sa
 import sys
 from scipy.io.wavfile import read
+import scipy
 from PlotLine import *
 import sounddevice as sd
 import soundfile as sf
@@ -17,9 +18,13 @@ from threading import *
 import numpy as np
 import math
 import audio2numpy as a2n
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 import pygame
+import os
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+import matplotlib.pyplot as plt
+from io import BytesIO
+
 
 class Worker(QObject):
     progress = Signal(int)
@@ -27,8 +32,8 @@ class Worker(QObject):
     @Slot(int)
     def do_work(self, n):
         global i
-        for i in np.arange(1,n+1,0.05):
-            time.sleep(0.05)
+        for i in np.arange(1,n+1,0.1):
+            time.sleep(0.1)
             self.progress.emit(i)
         self.completed.emit(i)
 
@@ -53,10 +58,14 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentIndex(0)
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
+        self.ui.verticalSlider_11.valueChanged.connect(self.KeyboardAdjustor)
 
         pygame.mixer.init()
         self.worker = Worker()
         self.worker_thread = QThread()
+
+        self.timePos = 0
+        self.sounds = None
 
         self.worker.progress.connect(self.UpdatePlots)
         self.worker.completed.connect(self.Complete)
@@ -199,25 +208,44 @@ class MyWindow(QMainWindow):
         self.plotWidget4 = pg.PlotWidget()
         self.plotWidget5 = pg.PlotWidget()
         self.plotWidget6 = pg.PlotWidget()
+         # Create Matplotlib figure and axes
+        self.matplotlib_figure, self.matplotlib_axes = plt.subplots()
+        self.matplotlib_axes.set_axis_off()  # Turn off axes for spectrogram
 
+        # Create Matplotlib widget to embed in PyQT layout
+        self.matplotlib_widget = FigureCanvasQTAgg(self.matplotlib_figure)
+        self.matplotlib_axes.set_facecolor('black')
+        self.matplotlib_figure.patch.set_facecolor('black')
+        ####
+        self.matplotlib_figure2, self.matplotlib_axes2 = plt.subplots()
+        self.matplotlib_axes2.set_axis_off()  # Turn off axes for spectrogram
+
+        # Create Matplotlib widget to embed in PyQT layout
+        self.matplotlib_widget2 = FigureCanvasQTAgg(self.matplotlib_figure)
+        self.matplotlib_axes2.set_facecolor('black')
+        self.matplotlib_figure2.patch.set_facecolor('black')
+
+        # Add Matplotlib widget to the layout
+        # self.ui.verticalLayout.addWidget(self.matplotlib_widget)
         layout1=QVBoxLayout()
         layout1.addWidget(self.plotWidget1 )
         self.ui.widget_2.setLayout(layout1)
         layout2=QVBoxLayout()
-        layout2.addWidget(self.plotWidget2 )
+        layout2.addWidget(self.matplotlib_widget)
         self.ui.widget_4.setLayout(layout2)
         layout3=QVBoxLayout()
-        layout3.addWidget(self.plotWidget3 )
+        layout3.addWidget(self.plotWidget3)
         self.ui.widget_5.setLayout(layout3)
         layout4=QVBoxLayout()
         layout4.addWidget(self.plotWidget4 )
         self.ui.widget_6.setLayout(layout4)
         layout5=QVBoxLayout()
-        layout5.addWidget(self.plotWidget5 )
+        layout5.addWidget(self.matplotlib_widget2 )
         self.ui.widget_7.setLayout(layout5)
         layout6=QVBoxLayout()
         layout6.addWidget(self.plotWidget6 )
         self.ui.widget_8.setLayout(layout6)
+        self.plotWidget1.sigXRangeChanged.connect(self.update_plotWidget4_x_range)
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
@@ -265,70 +293,201 @@ class MyWindow(QMainWindow):
 
     def Load(self):
         if self.ui.stackedWidget.currentIndex() == 1:
+            #Load filee, Plot, Convert Every track to frequency, get frequency ranges, update plot
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
-            if path.endswith('.wav'):
-                data, fs = sf.read(path, dtype='float32')
-            elif path.endswith('.mp3'):
-                data, fs = a2n.audio_from_file(path)
-            else:
-                return
-            self.newplot = PlotLine()
-            self.newplot.name = path
-            self.newplot.fs=fs
-            self.newplot.SetData(data,fs)
-            self.newplot.data_line = self.plotWidget1.plot(self.newplot.time_axis,self.newplot.sound_axis,name=self.newplot.name)
-            #sd.play(data, fs)
+            data, fs = a2n.audio_from_file(path)
+            
+            self.input = PlotLine()
+            self.input.name = path
+            self.input.fs=fs
+            self.input.SetData(data,fs)
+            self.plotWidget1.clear()
+            self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs)
+            self.update_frequency_components()
+
             pygame.mixer.music.load(path)
             pygame.mixer.music.play()
+
             self.plotWidget1.setXRange(0,10,padding=0)
             self.plotWidget1.setMouseEnabled(x=False,y=False)
-            # Generate and display the spectrogram
-            # self.generate_spectrogram(self.newplot.time_axis, self.newplot.sound_axis, fs)
 
-            self.work_requested.emit(math.ceil(self.newplot.time_axis.max()))
+            self.work_requested.emit(math.ceil(self.input.time_axis.max()))
+        if self.ui.stackedWidget.currentIndex() == 0:
+            #Load filee, Plot, Convert Every track to frequency, get frequency ranges, update plot
+            filename = QtWidgets.QFileDialog.getOpenFileName()
+            path = filename[0]
+            data, fs = a2n.audio_from_file(path)
+            
+            self.input = PlotLine()
+            self.input.name = path
+            self.input.fs=fs
+            self.input.SetData(data,fs)
+            self.plotWidget1.clear()
+            self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
+            self.update_frequency_components()
 
-    def ComposedLoad(self):
-        pass
+            # pygame.mixer.music.load(path)
+            # pygame.mixer.music.play()
+
+            self.plotWidget1.setXRange(0,10,padding=0)
+            self.plotWidget1.setMouseEnabled(x=False,y=False)
+
+            self.work_requested.emit(math.ceil(self.input.time_axis.max()))
+        if self.ui.stackedWidget.currentIndex() == 3: 
+            filename = QtWidgets.QFileDialog.getOpenFileName()
+            path = filename[0]
+            with open(path, 'rb') as file:
+                # Read binary data
+                binary_data = file.read()
+                
+                # Convert binary data to a 1D array of integers
+                values = np.frombuffer(binary_data, dtype=np.int32)
+                
+               #fs is already known in medical signals
+                fs = 500.0  # Sample rate in Hz
+                
+                # Calculate time values
+                time_values = np.arange(0, len(values) / fs, 1 / fs)
+            
+            self.input = PlotLine()
+            self.input.name = path
+            self.input.fs=fs
+            self.input.time_axis=time_values
+            self.input.sound_axis=values
+            self.plotWidget1.clear()
+            self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
+            self.plotWidget1.setXRange(0,10,padding=0)
+            self.plotWidget1.setMouseEnabled(x=False,y=False)
+            # self.update_frequency_components()
+            self.arrhythmiaRemoval()
+            self.work_requested.emit(math.ceil(self.input.time_axis.max()))
+
+
+    def UpdateComposed(self):
+        data, fs = a2n.audio_from_file("ComposedSound.mp3")
+        
+        self.input = PlotLine()
+        self.input.name = "ComposedSound"
+        self.input.fs=fs
+        self.input.SetData(data,fs)
+        self.plotWidget1.clear()
+        self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+
+    def SoundMerge(self,sound0,sound1,sound2,sound3):
+        self.composed = sound0.overlay(sound1,position=0)
+        self.composed = self.composed.overlay(sound2,position=0)
+        self.composed = self.composed.overlay(sound3,position=0)
+        self.composed.export("ComposedSound.mp3",format="mp3")
+
+    def KeyboardAdjustor(self):
+        if self.sounds != None:
+            NewSound = self.sounds[0] + ((self.musicSlider1.value()-5)*2)
+            pos = pygame.mixer.music.get_pos()
+            self.timePos += pos
+            pygame.mixer.music.unload()
+            if os.path.exists('ComposedSound.mp3'):
+                os.remove("ComposedSound.mp3")
+            self.SoundMerge(NewSound,self.sounds[1],self.sounds[2],self.sounds[3])
+            self.UpdateComposed()
+            pygame.mixer.music.load("ComposedSound.mp3")
+            pygame.mixer.music.play()
+            pygame.mixer.music.rewind() # mp3 files need a rewind first
+            pygame.mixer.music.set_pos(self.timePos/1000)
+
+    def random_color(self):
+        red = random.randint(0,255)
+        green = random.randint(0,255)
+        blue = random.randint(0,255)
+        
+        return (red,green,blue)
+    
 
     def UpdatePlots(self):
         # random_rgb = self.random_color()
-        # self.newplot.pen = pg.mkPen(color = random_rgb)
-        # self.newplot.data_line.setPen(self.newplot.pen)
-        xmin = self.plotWidget1.getViewBox().viewRange()[0][0]
-        xmax = self.plotWidget1.getViewBox().viewRange()[0][1]
-        self.plotWidget1.setXRange(pygame.mixer.music.get_pos()/1000, (pygame.mixer.music.get_pos()/1000)+10, padding=0)
-
-    def Complete(self):
-        self.plotWidget1.setXRange(0,self.newplot.time_axis.max())
+        # self.input.pen = pg.mkPen(color = random_rgb)
+        # self.input.data_line.setPen(self.input.pen)
+        if self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
+            xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
+            xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
+            self.plotWidget1.setXRange(xmin+0.1,xmax+0.1,padding=0)
         
-    def generate_spectrogram(self, time_axis, sound_axis, fs):
-    # Calculate the spectrogram using numpy and scipy
-        f, t, Sxx = np.histogram2d(
-            sound_axis,
-            time_axis,
-            bins=(128, 128),  # Reduce the number of bins
-            range=[[sound_axis.min(), sound_axis.max()], [time_axis.min(), time_axis.max()]]
-        )
+        else:
+           self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
+        #self.timePos = pygame.mixer.get_pos()/1000
+    def update_plotWidget4_x_range(self, event):
+        # Get the X range from plotWidget1
+         xmin, xmax = self.plotWidget1.getViewBox().viewRange()[0]
 
-        # Create a PlotItem for the spectrogram
-        img = pg.ImageItem()
-        img.setImage(Sxx.T, autoLevels=True)
-        img.scale((time_axis.max() - time_axis.min()) / Sxx.shape[0], (sound_axis.max() - sound_axis.min()) / Sxx.shape[1])
+        # Set the same X range for plotWidget2
+         self.plotWidget4.setXRange(xmin, xmax, padding=0)
+    def Complete(self):
+        self.plotWidget1.setXRange(0,self.input.time_axis.max())
+        
+    def generate_spectrogram(self, time_axis, sound_axis, fs,flag):
+        # f, t, Sxx = scipy.signal.spectrogram(
+        #     sound_axis,
+        #     fs=fs,
+        #     nperseg=256,  # Adjust the window size as needed
+        #     noverlap=128,  # Adjust overlap as needed
+        #     nfft=512  # Adjust FFT size as needed
+        # )
+        # pg.setConfigOptions(imageAxisOrder='row-major')
 
-        # Set axis labels
-        img.getView().setLabels(bottom='Time (s)', left='Frequency (Hz)')
-
-        # Add the spectrogram to the PlotWidget
-        self.plotWidget2.addItem(img)
-
+        # img = pg.ImageItem()
+        # self.plotWidget2.addItem(img)
+        # hist = pg.HistogramLUTItem()
+        # hist.setImageItem(img)
+        
+        # hist.setLevels(np.min(Sxx), np.max(Sxx))
+        # hist.gradient.restoreState(
+        # {'mode': 'rgb',
+        #  'ticks': [(0.5, (0, 182, 188, 255)),
+        #            (1.0, (246, 111, 0, 255)),
+        #            (0.0, (75, 0, 113, 255))]})
+        # img.setImage(Sxx)
+        # img.setTransform(QtGui.QTransform.fromScale(t[-1]/np.size(Sxx, axis=1),f[-1]/np.size(Sxx, axis=0)))
+        # self.plotWidget2.setLimits(xMin=0, xMax=t[-1], yMin=0, yMax=f[-1])
+        # self.plotWidget2.setLabel('bottom', "Time", units='s')
+        # self.plotWidget2.setLabel('left', "Frequency", units='Hz')
+        # Create a Matplotlib figure and canvas
+        if flag==1:
+            Pxx, frequencies, times, img = self.matplotlib_axes.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
+            # Draw the Matplotlib figure
+            self.matplotlib_widget.draw()
+            # Clear the existing content in the Matplotlib figure
+            self.matplotlib_axes.clear()
+            # Plot the spectrogram in the Matplotlib figure
+            self.matplotlib_axes.pcolormesh(times, frequencies, 10 * np.log10(Pxx), shading='auto', cmap='viridis')
+            self.matplotlib_axes.set_xlabel('Time (s)')
+            self.matplotlib_axes.set_ylabel('Frequency (Hz)')
+            self.matplotlib_axes.set_title('Spectrogram')
+        if flag==2:
+            Pxx, frequencies, times, img = self.matplotlib_axes2.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
+            # Draw the Matplotlib figure
+            self.matplotlib_widget2.draw()
+            # Clear the existing content in the Matplotlib figure
+            self.matplotlib_axes2.clear()
+            # Plot the spectrogram in the Matplotlib figure
+            self.matplotlib_axes2.pcolormesh(times, frequencies, 10 * np.log10(Pxx), shading='auto', cmap='viridis')
+            self.matplotlib_axes2.set_xlabel('Time (s)')
+            self.matplotlib_axes2.set_ylabel('Frequency (Hz)')
+            self.matplotlib_axes2.set_title('Spectrogram')
+        # Update the colorbar
+        if hasattr(self.matplotlib_axes2, 'get_images') and len(self.matplotlib_axes2.get_images()) > 0:
+            self.matplotlib_figure.colorbar(self.matplotlib_axes2.get_images()[0], ax=self.matplotlib_axes2)
+    
     def update_frequency_components(self):
         # Compute the Fourier Transform for the original signal
-        original_spectrum = np.fft.fft(self.newplot.sound_axis)
+        original_spectrum = np.fft.fft(self.input.sound_axis)
+        
 
         # Calculate the frequency resolution and create the frequency axis
-        time_step = 1.0 / self.newplot.fs
-        frequency_axis = np.fft.fftfreq(len(self.newplot.sound_axis), time_step)
+        time_step = 1.0 / self.input.fs
+        frequency_axis = np.fft.fftfreq(len(self.input.sound_axis), time_step)
 
         # Find the positive frequencies (ignore negative frequencies)
         positive_freq_indices = np.where(frequency_axis > 0)
@@ -354,6 +513,7 @@ class MyWindow(QMainWindow):
 
         # Initialize an array for the modified spectrum
         modified_spectrum = np.copy(original_spectrum)
+        
 
         # Adjust the magnitudes based on the slider values, with increased amplification
         for slider, (freq_min, freq_max) in zip(uniform_sliders, frequency_ranges):
@@ -367,33 +527,65 @@ class MyWindow(QMainWindow):
             modified_spectrum[indices] *= amplitude
 
         # Update the plot with the original signal and the modified signal in the frequency domain
-        self.plotWidget2.clear()
-        self.plotWidget2.plot(
-            frequency_axis[positive_freq_indices],
-            np.abs(original_spectrum[positive_freq_indices]),
-            pen='b',
-            name='Original Spectrum'
-        )
-        self.plotWidget2.setLabel('left', 'Amplitude')
-        self.plotWidget2.setLabel('bottom', 'Frequency (Hz)')
+        # self.plotWidget2.clear()
+        # self.plotWidget2.plot(
+        #     frequency_axis[positive_freq_indices],
+        #     np.abs(original_spectrum[positive_freq_indices]),
+        #     pen='b',
+        #     name='Original Spectrum'
+        # )
+        # self.plotWidget2.setLabel('left', 'Amplitude')
+        # self.plotWidget2.setLabel('bottom', 'Frequency (Hz)')
 
-        self.plotWidget3.clear()
-        self.plotWidget3.plot(
-            frequency_axis[positive_freq_indices],
-            np.abs(modified_spectrum[positive_freq_indices]),
-            pen='r',
-            name='Modified Spectrum'
-        )
-        self.plotWidget3.setLabel('left', 'Amplitude')
-        self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
+        # self.plotWidget3.clear()
+        # self.plotWidget3.plot(
+        #     frequency_axis[positive_freq_indices],
+        #     np.abs(modified_spectrum[positive_freq_indices]),
+        #     pen='r',
+        #     name='Modified Spectrum'
+        # )
+        self.plotFrequencyDomian(frequency_axis,modified_spectrum,positive_freq_indices)
 
         # Compute the inverse Fourier Transform to get the modified signal
         modified_signal = np.fft.ifft(modified_spectrum).real
 
         # Update the plot with the modified signal in the time domain
         self.plotWidget4.clear()
-        self.newplot.data_line = self.plotWidget4.plot(
-            self.newplot.time_axis, modified_signal, name=self.newplot.name
+        self.input.data_line = self.plotWidget4.plot(
+            self.input.time_axis, modified_signal, name=self.input.name
         )
-        self.plotWidget4.setXRange(0, self.newplot.time_axis.max())
+        # self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
+        # self.plotWidget4.setXRange(0, self.input.time_axis.max())
+        self.plotWidget4.setLabel('left', 'Amplitude')
+        self.plotWidget4.setLabel('bottom', 'Frequency (Hz)')
+       
         self.plotWidget4.setMouseEnabled(x=False, y=False)
+        
+    def plotFrequencyDomian(self,frequency_axis,modified_spectrum,positive_freq_indices):
+        self.plotWidget3.clear()
+        self.plotWidget3.plot(
+            frequency_axis[positive_freq_indices],
+            np.abs(modified_spectrum[positive_freq_indices]),
+            pen='r',
+            name='Modified Spectrum'
+        )   
+    def arrhythmiaRemoval(self):
+        signal = np.frombuffer(self.input.sound_axis, dtype=np.int32)
+
+        # Determine the number of rows (adjust as needed based on your data)
+        num_rows = len(signal) // 2
+
+        # Reshape the 1D array to a 2D array
+        signal_2d = signal.reshape((num_rows, -1))
+
+        # Extract the desired column
+        column_data = signal_2d[:, 1]
+
+        # Compute the FFT on the extracted column
+        fft_result = np.fft.fft(column_data)
+
+        # Calculate the frequency axis
+        fs = 500.0  # fs for any medical signal from physionet 
+        frequencies = np.fft.fftfreq(len(column_data), 1/fs)
+        positive_freq_indices = np.where(frequencies > 0)
+        self.plotFrequencyDomian(frequencies,fft_result,positive_freq_indices)
