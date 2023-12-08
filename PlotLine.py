@@ -9,6 +9,8 @@ class PlotLine:
         self.pen = None
         self.name = None
         self.fs=None
+        self.fft = None
+        self.FrequencyRanges = []
 
     def SetData(self,data, fs):
         n = len(data)  # the length of the arrays contained in data
@@ -19,3 +21,4 @@ class PlotLine:
         # x-axis and y-axis to plot the audio data
         self.time_axis = np.linspace(0, n / fs, n, endpoint=False)
         self.sound_axis = ch1
+        self.fft = np.fft.fft(self.sound_axis)
