@@ -245,7 +245,6 @@ class MyWindow(QMainWindow):
         layout6=QVBoxLayout()
         layout6.addWidget(self.plotWidget6 )
         self.ui.widget_8.setLayout(layout6)
-        self.plotWidget1.sigXRangeChanged.connect(self.update_plotWidget4_x_range)
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
@@ -304,8 +303,9 @@ class MyWindow(QMainWindow):
             self.input.SetData(data,fs)
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
-            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs)
+            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.update_frequency_components()
+            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,2)
 
             pygame.mixer.music.load(path)
             pygame.mixer.music.play()
@@ -314,7 +314,8 @@ class MyWindow(QMainWindow):
             self.plotWidget1.setMouseEnabled(x=False,y=False)
 
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
-        if self.ui.stackedWidget.currentIndex() == 0:
+
+        elif self.ui.stackedWidget.currentIndex() == 0:
             #Load filee, Plot, Convert Every track to frequency, get frequency ranges, update plot
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
@@ -336,7 +337,7 @@ class MyWindow(QMainWindow):
             self.plotWidget1.setMouseEnabled(x=False,y=False)
 
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
-        if self.ui.stackedWidget.currentIndex() == 3: 
+        elif self.ui.stackedWidget.currentIndex() == 3: 
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
             with open(path, 'rb') as file:
@@ -366,6 +367,12 @@ class MyWindow(QMainWindow):
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
+    def SetFrequencyRanges(self,filename):
+        if self.ui.stackedWidget.currentIndex() == 1:
+            Bass = filename - ".mp3" + " - Bass" + ".mp3"
+            Drums = filename - ".mp3" + " - Drums" + ".mp3"
+            Piano = filename - ".mp3" + " - Piano" + ".mp3"
+            Guitar = filename - ".mp3" + " - Guitar" + ".mp3"
 
     def UpdateComposed(self):
         data, fs = a2n.audio_from_file("ComposedSound.mp3")
@@ -414,46 +421,17 @@ class MyWindow(QMainWindow):
             xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
             xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
             self.plotWidget1.setXRange(xmin+0.1,xmax+0.1,padding=0)
+            self.plotWidget4.setXRange(xmin+0.1,xmax+0.1,padding=0)
         
-        else:
+        elif self.ui.stackedWidget.currentIndex() == 1:
            self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
+           self.plotWidget4.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
         #self.timePos = pygame.mixer.get_pos()/1000
-    def update_plotWidget4_x_range(self, event):
-        # Get the X range from plotWidget1
-         xmin, xmax = self.plotWidget1.getViewBox().viewRange()[0]
 
-        # Set the same X range for plotWidget2
-         self.plotWidget4.setXRange(xmin, xmax, padding=0)
     def Complete(self):
         self.plotWidget1.setXRange(0,self.input.time_axis.max())
         
     def generate_spectrogram(self, time_axis, sound_axis, fs,flag):
-        # f, t, Sxx = scipy.signal.spectrogram(
-        #     sound_axis,
-        #     fs=fs,
-        #     nperseg=256,  # Adjust the window size as needed
-        #     noverlap=128,  # Adjust overlap as needed
-        #     nfft=512  # Adjust FFT size as needed
-        # )
-        # pg.setConfigOptions(imageAxisOrder='row-major')
-
-        # img = pg.ImageItem()
-        # self.plotWidget2.addItem(img)
-        # hist = pg.HistogramLUTItem()
-        # hist.setImageItem(img)
-        
-        # hist.setLevels(np.min(Sxx), np.max(Sxx))
-        # hist.gradient.restoreState(
-        # {'mode': 'rgb',
-        #  'ticks': [(0.5, (0, 182, 188, 255)),
-        #            (1.0, (246, 111, 0, 255)),
-        #            (0.0, (75, 0, 113, 255))]})
-        # img.setImage(Sxx)
-        # img.setTransform(QtGui.QTransform.fromScale(t[-1]/np.size(Sxx, axis=1),f[-1]/np.size(Sxx, axis=0)))
-        # self.plotWidget2.setLimits(xMin=0, xMax=t[-1], yMin=0, yMax=f[-1])
-        # self.plotWidget2.setLabel('bottom', "Time", units='s')
-        # self.plotWidget2.setLabel('left', "Frequency", units='Hz')
-        # Create a Matplotlib figure and canvas
         if flag==1:
             Pxx, frequencies, times, img = self.matplotlib_axes.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
             # Draw the Matplotlib figure
@@ -481,94 +459,98 @@ class MyWindow(QMainWindow):
             self.matplotlib_figure.colorbar(self.matplotlib_axes2.get_images()[0], ax=self.matplotlib_axes2)
     
     def update_frequency_components(self):
-        # Compute the Fourier Transform for the original signal
-        original_spectrum = np.fft.fft(self.input.sound_axis)
+        if self.ui.stackedWidget.currentIndex() == 1:
+            pass
+        elif self.ui.stackedWidget.currentIndex() == 0:
+            # Compute the Fourier Transform for the original signal
+            original_spectrum = np.fft.fft(self.input.sound_axis)
+            
+
+            # Calculate the frequency resolution and create the frequency axis
+            time_step = 1.0 / self.input.fs
+            frequency_axis = np.fft.fftfreq(len(self.input.sound_axis), time_step)
+
+            # Find the positive frequencies (ignore negative frequencies)
+            positive_freq_indices = np.where(frequency_axis > 0)
+
+            # Get the minimum and maximum frequencies
+            signal_min_freq = frequency_axis[positive_freq_indices].min()
+            signal_max_freq = frequency_axis[positive_freq_indices].max()
+
+            # Get the slider values
+            uniform_sliders = [
+                self.unifromSlider1, self.unifromSlider2, self.unifromSlider3, self.unifromSlider4,
+                self.unifromSlider5, self.unifromSlider6, self.unifromSlider7, self.unifromSlider8,
+                self.unifromSlider9, self.unifromSlider10
+            ]
+
+            # Calculate the frequency range for each slider based on the loaded signal's range
+            frequency_ranges = [
+                (
+                    signal_min_freq + i * (signal_max_freq - signal_min_freq) / 10,
+                    signal_min_freq + (i + 1) * (signal_max_freq - signal_min_freq) / 10
+                ) for i in range(10)
+            ]
+
+            # Initialize an array for the modified spectrum
+            modified_spectrum = np.copy(original_spectrum)
+            
+
+            # Adjust the magnitudes based on the slider values, with increased amplification
+            for slider, (freq_min, freq_max) in zip(uniform_sliders, frequency_ranges):
+                amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+
+                # Find the indices of the frequency range
+                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+
+                # Adjust the magnitude in the frequency domain
+                modified_spectrum[indices] *= amplitude
+
+            # Update the plot with the original signal and the modified signal in the frequency domain
+            # self.plotWidget2.clear()
+            # self.plotWidget2.plot(
+            #     frequency_axis[positive_freq_indices],
+            #     np.abs(original_spectrum[positive_freq_indices]),
+            #     pen='b',
+            #     name='Original Spectrum'
+            # )
+            # self.plotWidget2.setLabel('left', 'Amplitude')
+            # self.plotWidget2.setLabel('bottom', 'Frequency (Hz)')
+
+            # self.plotWidget3.clear()
+            # self.plotWidget3.plot(
+            #     frequency_axis[positive_freq_indices],
+            #     np.abs(modified_spectrum[positive_freq_indices]),
+            #     pen='r',
+            #     name='Modified Spectrum'
+            # )
+            self.plotFrequencyDomain(frequency_axis,modified_spectrum,positive_freq_indices)
+
+            # Compute the inverse Fourier Transform to get the modified signal
+            modified_signal = np.fft.ifft(modified_spectrum).real
+
+            # Update the plot with the modified signal in the time domain
+            self.plotWidget4.clear()
+            self.input.data_line = self.plotWidget4.plot(
+                self.input.time_axis, modified_signal, name=self.input.name
+            )
+            # self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
+            # self.plotWidget4.setXRange(0, self.input.time_axis.max())
+            self.plotWidget3.setLabel('left', 'Amplitude')
+            self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
         
-
-        # Calculate the frequency resolution and create the frequency axis
-        time_step = 1.0 / self.input.fs
-        frequency_axis = np.fft.fftfreq(len(self.input.sound_axis), time_step)
-
-        # Find the positive frequencies (ignore negative frequencies)
-        positive_freq_indices = np.where(frequency_axis > 0)
-
-        # Get the minimum and maximum frequencies
-        signal_min_freq = frequency_axis[positive_freq_indices].min()
-        signal_max_freq = frequency_axis[positive_freq_indices].max()
-
-        # Get the slider values
-        uniform_sliders = [
-            self.unifromSlider1, self.unifromSlider2, self.unifromSlider3, self.unifromSlider4,
-            self.unifromSlider5, self.unifromSlider6, self.unifromSlider7, self.unifromSlider8,
-            self.unifromSlider9, self.unifromSlider10
-        ]
-
-        # Calculate the frequency range for each slider based on the loaded signal's range
-        frequency_ranges = [
-            (
-                signal_min_freq + i * (signal_max_freq - signal_min_freq) / 10,
-                signal_min_freq + (i + 1) * (signal_max_freq - signal_min_freq) / 10
-            ) for i in range(10)
-        ]
-
-        # Initialize an array for the modified spectrum
-        modified_spectrum = np.copy(original_spectrum)
+            self.plotWidget4.setMouseEnabled(x=False, y=False)
         
-
-        # Adjust the magnitudes based on the slider values, with increased amplification
-        for slider, (freq_min, freq_max) in zip(uniform_sliders, frequency_ranges):
-            amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
-            amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-
-            # Find the indices of the frequency range
-            indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-
-            # Adjust the magnitude in the frequency domain
-            modified_spectrum[indices] *= amplitude
-
-        # Update the plot with the original signal and the modified signal in the frequency domain
-        # self.plotWidget2.clear()
-        # self.plotWidget2.plot(
-        #     frequency_axis[positive_freq_indices],
-        #     np.abs(original_spectrum[positive_freq_indices]),
-        #     pen='b',
-        #     name='Original Spectrum'
-        # )
-        # self.plotWidget2.setLabel('left', 'Amplitude')
-        # self.plotWidget2.setLabel('bottom', 'Frequency (Hz)')
-
-        # self.plotWidget3.clear()
-        # self.plotWidget3.plot(
-        #     frequency_axis[positive_freq_indices],
-        #     np.abs(modified_spectrum[positive_freq_indices]),
-        #     pen='r',
-        #     name='Modified Spectrum'
-        # )
-        self.plotFrequencyDomian(frequency_axis,modified_spectrum,positive_freq_indices)
-
-        # Compute the inverse Fourier Transform to get the modified signal
-        modified_signal = np.fft.ifft(modified_spectrum).real
-
-        # Update the plot with the modified signal in the time domain
-        self.plotWidget4.clear()
-        self.input.data_line = self.plotWidget4.plot(
-            self.input.time_axis, modified_signal, name=self.input.name
-        )
-        # self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
-        # self.plotWidget4.setXRange(0, self.input.time_axis.max())
-        self.plotWidget4.setLabel('left', 'Amplitude')
-        self.plotWidget4.setLabel('bottom', 'Frequency (Hz)')
-       
-        self.plotWidget4.setMouseEnabled(x=False, y=False)
-        
-    def plotFrequencyDomian(self,frequency_axis,modified_spectrum,positive_freq_indices):
+    def plotFrequencyDomain(self,frequency_axis,modified_spectrum,positive_freq_indices):
         self.plotWidget3.clear()
         self.plotWidget3.plot(
             frequency_axis[positive_freq_indices],
             np.abs(modified_spectrum[positive_freq_indices]),
             pen='r',
             name='Modified Spectrum'
-        )   
+        )
+
     def arrhythmiaRemoval(self):
         signal = np.frombuffer(self.input.sound_axis, dtype=np.int32)
 
@@ -588,4 +570,4 @@ class MyWindow(QMainWindow):
         fs = 500.0  # fs for any medical signal from physionet 
         frequencies = np.fft.fftfreq(len(column_data), 1/fs)
         positive_freq_indices = np.where(frequencies > 0)
-        self.plotFrequencyDomian(frequencies,fft_result,positive_freq_indices)
+        self.plotFrequencyDomain(frequencies,fft_result,positive_freq_indices)
