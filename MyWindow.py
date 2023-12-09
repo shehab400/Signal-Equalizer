@@ -293,13 +293,30 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentIndex(3)
         self.ui.stackedWidget_2.setCurrentIndex(3)
 
+    def UpdateAudio(self,time_axis,sound_axis,fs):
+        data = np.array(list(zip(time_axis,sound_axis)))
+        sf.write("test.wav",data,fs)
+        sound = AudioSegment.from_wav("test.wav")
+        os.remove('test.wav')
+        sound = sound.set_channels(1)
+        if os.path.exists('test.mp3'):
+            os.remove("test.mp3")
+        sound.export("test.mp3", format="mp3")
+        pos = pygame.mixer.music.get_pos()
+        self.timePos += pos
+        pygame.mixer.music.unload()
+        pygame.mixer.music.load("test.mp3")
+        pygame.mixer.music.play()
+        pygame.mixer.music.rewind() # mp3 files need a rewind first
+        pygame.mixer.music.set_pos(self.timePos/1000)
+
     def Load(self):
         if self.ui.stackedWidget.currentIndex() == 1:
             #Load filee, Plot, Convert Every track to frequency, get frequency ranges, update plot
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
             data, fs = a2n.audio_from_file(path)
-            
+
             self.input = PlotLine()
             self.input.name = path
             self.input.fs=fs
@@ -467,24 +484,7 @@ class MyWindow(QMainWindow):
     
     def update_frequency_components(self):
         if self.ui.stackedWidget.currentIndex() == 1:
-            modified_spectrum = np.copy(self.input.fft)
-            positive_freq_indices = np.where(self.Drums.FrequencyRanges > 0)
-            signal_min_freq = self.Drums.FrequencyRanges[positive_freq_indices].min()
-            signal_max_freq = self.Drums.FrequencyRanges[positive_freq_indices].max()
-            amplification_factor = self.musicSlider1.value()*0.2
-            indices = np.where((self.Drums.FrequencyRanges >= signal_min_freq) & (self.Drums.FrequencyRanges <= signal_max_freq))
-            modified_spectrum[indices] *= amplification_factor
-
-            self.plotFrequencyDomain(self.input.FrequencyRanges,modified_spectrum,positive_freq_indices)
-            modified_signal = np.fft.ifft(modified_spectrum).real
-
-            # Update the plot with the modified signal in the time domain
-            self.plotWidget4.clear()
-            self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
-            self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
-            # self.plotWidget4.setXRange(0, self.input.time_axis.max())
-            self.plotWidget3.setLabel('left', 'Amplitude')
-            self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
+            pass
 
         elif self.ui.stackedWidget.currentIndex() == 0:
             # Compute the Fourier Transform for the original signal
