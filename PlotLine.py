@@ -22,3 +22,4 @@ class PlotLine:
         self.time_axis = np.linspace(0, n / fs, n, endpoint=False)
         self.sound_axis = ch1
         self.fft = np.fft.fft(self.sound_axis)
+        self.FrequencyRanges = np.fft.fftfreq(len(self.sound_axis), 1/fs)

@@ -58,7 +58,7 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentIndex(0)
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
-        self.ui.verticalSlider_11.valueChanged.connect(self.KeyboardAdjustor)
+        self.ui.verticalSlider_11.valueChanged.connect(self.update_frequency_components)
 
         pygame.mixer.init()
         self.worker = Worker()
@@ -245,6 +245,9 @@ class MyWindow(QMainWindow):
         layout6=QVBoxLayout()
         layout6.addWidget(self.plotWidget6 )
         self.ui.widget_8.setLayout(layout6)
+
+        self.plotWidget1.setMouseEnabled(x=False,y=False)
+        self.plotWidget4.setMouseEnabled(x=False, y=False)
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
@@ -301,6 +304,7 @@ class MyWindow(QMainWindow):
             self.input.name = path
             self.input.fs=fs
             self.input.SetData(data,fs)
+            self.SetFrequencyRanges(path)
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
@@ -311,7 +315,6 @@ class MyWindow(QMainWindow):
             pygame.mixer.music.play()
 
             self.plotWidget1.setXRange(0,10,padding=0)
-            self.plotWidget1.setMouseEnabled(x=False,y=False)
 
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
@@ -334,7 +337,6 @@ class MyWindow(QMainWindow):
             # pygame.mixer.music.play()
 
             self.plotWidget1.setXRange(0,10,padding=0)
-            self.plotWidget1.setMouseEnabled(x=False,y=False)
 
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
         elif self.ui.stackedWidget.currentIndex() == 3: 
@@ -362,17 +364,22 @@ class MyWindow(QMainWindow):
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.plotWidget1.setXRange(0,10,padding=0)
-            self.plotWidget1.setMouseEnabled(x=False,y=False)
             # self.update_frequency_components()
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
     def SetFrequencyRanges(self,filename):
         if self.ui.stackedWidget.currentIndex() == 1:
-            Bass = filename - ".mp3" + " - Bass" + ".mp3"
-            Drums = filename - ".mp3" + " - Drums" + ".mp3"
-            Piano = filename - ".mp3" + " - Piano" + ".mp3"
-            Guitar = filename - ".mp3" + " - Guitar" + ".mp3"
+            self.Bass = self.Drums = self.Keyboard = self.Guitar = PlotLine()
+            self.Bass.name = filename.replace(".mp3","") + " - Bass.mp3"
+            self.Drums.name = filename.replace(".mp3","") + " - Drums.mp3"
+            self.Keyboard.name = filename.replace(".mp3","") + " - Keyboard.mp3"
+            self.Guitar.name = filename.replace(".mp3","") + " - Guitar.mp3"
+            list = [self.Bass,self.Drums,self.Keyboard,self.Guitar]
+            for plot in list:
+                data, fs = a2n.audio_from_file(plot.name)
+                plot.fs=fs
+                plot.SetData(data,fs)
 
     def UpdateComposed(self):
         data, fs = a2n.audio_from_file("ComposedSound.mp3")
@@ -384,26 +391,26 @@ class MyWindow(QMainWindow):
         self.plotWidget1.clear()
         self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
 
-    def SoundMerge(self,sound0,sound1,sound2,sound3):
-        self.composed = sound0.overlay(sound1,position=0)
-        self.composed = self.composed.overlay(sound2,position=0)
-        self.composed = self.composed.overlay(sound3,position=0)
-        self.composed.export("ComposedSound.mp3",format="mp3")
+    # def SoundMerge(self,sound0,sound1,sound2,sound3):
+    #     self.composed = sound0.overlay(sound1,position=0)
+    #     self.composed = self.composed.overlay(sound2,position=0)
+    #     self.composed = self.composed.overlay(sound3,position=0)
+    #     self.composed.export("ComposedSound.mp3",format="mp3")
 
-    def KeyboardAdjustor(self):
-        if self.sounds != None:
-            NewSound = self.sounds[0] + ((self.musicSlider1.value()-5)*2)
-            pos = pygame.mixer.music.get_pos()
-            self.timePos += pos
-            pygame.mixer.music.unload()
-            if os.path.exists('ComposedSound.mp3'):
-                os.remove("ComposedSound.mp3")
-            self.SoundMerge(NewSound,self.sounds[1],self.sounds[2],self.sounds[3])
-            self.UpdateComposed()
-            pygame.mixer.music.load("ComposedSound.mp3")
-            pygame.mixer.music.play()
-            pygame.mixer.music.rewind() # mp3 files need a rewind first
-            pygame.mixer.music.set_pos(self.timePos/1000)
+    # def KeyboardAdjustor(self):
+    #     if self.sounds != None:
+    #         NewSound = self.sounds[0] + ((self.musicSlider1.value()-5)*2)
+    #         pos = pygame.mixer.music.get_pos()
+    #         self.timePos += pos
+    #         pygame.mixer.music.unload()
+    #         if os.path.exists('ComposedSound.mp3'):
+    #             os.remove("ComposedSound.mp3")
+    #         self.SoundMerge(NewSound,self.sounds[1],self.sounds[2],self.sounds[3])
+    #         self.UpdateComposed()
+    #         pygame.mixer.music.load("ComposedSound.mp3")
+    #         pygame.mixer.music.play()
+    #         pygame.mixer.music.rewind() # mp3 files need a rewind first
+    #         pygame.mixer.music.set_pos(self.timePos/1000)
 
     def random_color(self):
         red = random.randint(0,255)
@@ -460,7 +467,25 @@ class MyWindow(QMainWindow):
     
     def update_frequency_components(self):
         if self.ui.stackedWidget.currentIndex() == 1:
-            pass
+            modified_spectrum = np.copy(self.input.fft)
+            positive_freq_indices = np.where(self.Drums.FrequencyRanges > 0)
+            signal_min_freq = self.Drums.FrequencyRanges[positive_freq_indices].min()
+            signal_max_freq = self.Drums.FrequencyRanges[positive_freq_indices].max()
+            amplification_factor = self.musicSlider1.value()*0.2
+            indices = np.where((self.Drums.FrequencyRanges >= signal_min_freq) & (self.Drums.FrequencyRanges <= signal_max_freq))
+            modified_spectrum[indices] *= amplification_factor
+
+            self.plotFrequencyDomain(self.input.FrequencyRanges,modified_spectrum,positive_freq_indices)
+            modified_signal = np.fft.ifft(modified_spectrum).real
+
+            # Update the plot with the modified signal in the time domain
+            self.plotWidget4.clear()
+            self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
+            self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
+            # self.plotWidget4.setXRange(0, self.input.time_axis.max())
+            self.plotWidget3.setLabel('left', 'Amplitude')
+            self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
+
         elif self.ui.stackedWidget.currentIndex() == 0:
             # Compute the Fourier Transform for the original signal
             original_spectrum = np.fft.fft(self.input.sound_axis)
@@ -539,8 +564,6 @@ class MyWindow(QMainWindow):
             # self.plotWidget4.setXRange(0, self.input.time_axis.max())
             self.plotWidget3.setLabel('left', 'Amplitude')
             self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
-        
-            self.plotWidget4.setMouseEnabled(x=False, y=False)
         
     def plotFrequencyDomain(self,frequency_axis,modified_spectrum,positive_freq_indices):
         self.plotWidget3.clear()
