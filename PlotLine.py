@@ -10,7 +10,7 @@ class PlotLine:
         self.name = None
         self.fs=None
         self.fft = None
-        self.FrequencyRanges = []
+        self.FrequencySamples = None
 
     def SetData(self,data, fs):
         n = len(data)  # the length of the arrays contained in data
@@ -22,3 +22,4 @@ class PlotLine:
         self.time_axis = np.linspace(0, n / fs, n, endpoint=False)
         self.sound_axis = ch1
         self.fft = np.fft.fft(self.sound_axis)
+        self.FrequencySamples = np.fft.fftfreq(len(self.sound_axis), 1/fs)
