@@ -24,6 +24,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 from io import BytesIO
+import pandas as pd
 
 
 class Worker(QObject):
@@ -204,6 +205,11 @@ class MyWindow(QMainWindow):
             self.unifromSlider9, self.unifromSlider10
         ]:
             slider.valueChanged.connect(self.update_frequency_components)
+             # connect medical sliders to the arythmia function
+        for slider in [
+            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4
+        ]:
+            slider.valueChanged.connect(self.arrhythmiaRemoval)
         #
         self.plotWidget1 = pg.PlotWidget()
         self.plotWidget2 = pg.PlotWidget()
@@ -367,19 +373,34 @@ class MyWindow(QMainWindow):
                 binary_data = file.read()
                 
                 # Convert binary data to a 1D array of integers
-                values = np.frombuffer(binary_data, dtype=np.int32)
+                values = np.frombuffer(binary_data, dtype=np.int64)
                 
                #fs is already known in medical signals
                 fs = 500.0  # Sample rate in Hz
                 
                 # Calculate time values
                 time_values = np.arange(0, len(values) / fs, 1 / fs)
-            
+            path1="C:/projects/DSP/Task 3/Signal-Equalizer/arrhythmia signals/ECG.csv"
+            normal_ecg=pd.read_csv(path1, usecols=["time", "amplitude"])
+            uniform_fft = np.fft.fft(normal_ecg['amplitude'])
             self.input = PlotLine()
+            self.input.uniform_fftfreq = np.fft.fftfreq(len(uniform_fft), 1/2)
             self.input.name = path
             self.input.fs=fs
             self.input.time_axis=time_values
             self.input.sound_axis=values
+            signal = np.frombuffer(self.input.sound_axis, dtype=np.int64)
+            # Determine the number of rows (adjust as needed based on your data)
+            num_rows = len(signal) // 2
+            # Reshape the 1D array to a 2D array
+            signal_2d = signal.reshape((num_rows, -1))
+            # Extract the desired column
+            column_data = signal_2d[:, 1]
+            # Compute the FFT on the extracted column
+            self.input.fft = np.fft.fft(column_data)
+            # Calculate the frequency axis
+            fs = 500.0  # fs for any medical signal from physionet 
+            self.input.FrequencySamples = np.fft.fftfreq(len(column_data), 1/fs)
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
@@ -516,13 +537,15 @@ class MyWindow(QMainWindow):
 
         elif self.ui.stackedWidget.currentIndex() == 0:
             # Compute the Fourier Transform for the original signal
-            original_spectrum = np.fft.fft(self.input.sound_axis)
-            
+            # original_spectrum = np.fft.fft(self.input.sound_axis)
+            original_spectrum=self.input.fft
+            frequency_axis=self.input.FrequencySamples
 
-            # Calculate the frequency resolution and create the frequency axis
-            time_step = 1.0 / self.input.fs
-            frequency_axis = np.fft.fftfreq(len(self.input.sound_axis), time_step)
-
+            # # Calculate the frequency resolution and create the frequency axis
+            # time_step = 1.0 / self.input.fs
+            # frequency_axis = np.fft.fftfreq(len(self.input.sound_axis), time_step)
+             # Initialize an array for the modified spectrum    
+            modified_spectrum = np.copy(original_spectrum)
             # Find the positive frequencies (ignore negative frequencies)
             positive_freq_indices = np.where(frequency_axis > 0)
 
@@ -545,8 +568,7 @@ class MyWindow(QMainWindow):
                 ) for i in range(10)
             ]
 
-            # Initialize an array for the modified spectrum
-            modified_spectrum = np.copy(original_spectrum)
+           
             
 
             # Adjust the magnitudes based on the slider values, with increased amplification
@@ -588,7 +610,7 @@ class MyWindow(QMainWindow):
             self.input.data_line = self.plotWidget4.plot(
                 self.input.time_axis, modified_signal, name=self.input.name
             )
-            # self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
+            self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
             # self.plotWidget4.setXRange(0, self.input.time_axis.max())
             self.plotWidget3.setLabel('left', 'Amplitude')
             self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
@@ -603,22 +625,36 @@ class MyWindow(QMainWindow):
         )
 
     def arrhythmiaRemoval(self):
-        signal = np.frombuffer(self.input.sound_axis, dtype=np.int32)
+        original_spectrum = self.input.fft
+        modified_spectrum = original_spectrum.copy()  # Make a copy to avoid modifying the original
+        positive_freq_indices = np.where(self.input.FrequencySamples > 0)
 
-        # Determine the number of rows (adjust as needed based on your data)
-        num_rows = len(signal) // 2
+        # Get the slider values
+        medical_sliders = [
+            self.medicalSignalSlider1, self.medicalSignalSlider1, self.medicalSignalSlider1, self.medicalSignalSlider1
+        ]
 
-        # Reshape the 1D array to a 2D array
-        signal_2d = signal.reshape((num_rows, -1))
+        # Calculate the arythmia frequencies
+        arythmia_freq = set(self.input.FrequencySamples) - set(self.input.uniform_fftfreq)
+        
+        # Find the indices of arythmia frequencies in the frequency array
+        arythmia_indices = np.where(np.isin(self.input.FrequencySamples, list(arythmia_freq)))
 
-        # Extract the desired column
-        column_data = signal_2d[:, 1]
+        for slider in medical_sliders:
+            amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+            amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+            modified_spectrum[arythmia_indices] *= amplitude
 
-        # Compute the FFT on the extracted column
-        fft_result = np.fft.fft(column_data)
+        self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum,positive_freq_indices)
+        # Compute the inverse Fourier Transform to get the modified signal
+        modified_signal = np.fft.ifft(modified_spectrum).real
 
-        # Calculate the frequency axis
-        fs = 500.0  # fs for any medical signal from physionet 
-        frequencies = np.fft.fftfreq(len(column_data), 1/fs)
-        positive_freq_indices = np.where(frequencies > 0)
-        self.plotFrequencyDomain(frequencies,fft_result,positive_freq_indices)
+        # Print the lengths for debugging
+        print(len(modified_signal))
+        print(len(self.input.time_axis))
+
+        # Update the plot with the modified signal in the time domain
+        # self.plotWidget4.clear()
+        # self.input.data_line = self.plotWidget4.plot(
+        #     self.input.time_axis, modified_signal, name=self.input.name
+        # )
