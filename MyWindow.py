@@ -508,18 +508,25 @@ class MyWindow(QMainWindow):
             signal_min_freq = frequency_axis[positive_freq_indices].min()
             signal_max_freq = frequency_axis[positive_freq_indices].max()
             Sliders = [self.musicSlider1,self.musicSlider2,self.musicSlider3,self.musicSlider4]
-            frequency_ranges = [(10,250),(60,250),(196,3000),(27,4186)] #Drums,Bass,Violin,Piano
+            frequency_ranges = [(0,100),(100,250),(300,1200),(1200,4186)] #Drums,Bass,Violin,Piano
             modified_spectrum = np.copy(original_spectrum)
 
             for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
-                amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
-                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                amplification_factor = slider.value() * 0.2
 
                 # Find the indices of the frequency range
                 indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
 
                 # Adjust the magnitude in the frequency domain
-                modified_spectrum[indices] *= amplitude
+                modified_spectrum[indices] *= amplification_factor
+            
+            frequency_ranges = [(-100,0),(-250,-100),(-1200,-300),(-4186,-1200)] #Drums,Bass,Violin,Piano            
+            for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
+                amplification_factor = slider.value() * 0.2
+
+                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+                # Adjust the magnitude in the frequency domain
+                modified_spectrum[indices] *= amplification_factor
             self.plotFrequencyDomain(frequency_axis,modified_spectrum,positive_freq_indices)
 
             # Compute the inverse Fourier Transform to get the modified signal
