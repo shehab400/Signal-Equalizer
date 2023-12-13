@@ -175,6 +175,11 @@ class MyWindow(QMainWindow):
         self.ui.verticalSlider_12.valueChanged.connect(self.update_frequency_components)
         self.ui.verticalSlider_13.valueChanged.connect(self.update_frequency_components)
         self.ui.verticalSlider_14.valueChanged.connect(self.update_frequency_components)
+        self.ui.verticalSlider_15.valueChanged.connect(self.update_frequency_components)
+        self.ui.verticalSlider_16.valueChanged.connect(self.update_frequency_components)
+        self.ui.verticalSlider_17.valueChanged.connect(self.update_frequency_components)
+        self.ui.verticalSlider_18.valueChanged.connect(self.update_frequency_components)
+
         #
         self.unifromSlider1.setTickPosition(QSlider.TicksLeft)
         self.unifromSlider2.setTickPosition(QSlider.TicksLeft)
@@ -320,7 +325,7 @@ class MyWindow(QMainWindow):
         pygame.mixer.music.set_pos(self.timePos/1000)
 
     def Load(self):
-        if self.ui.stackedWidget.currentIndex() == 1:
+        if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
             #Load filee, Plot, Convert Every track to frequency, get frequency ranges, update plot
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
@@ -409,18 +414,18 @@ class MyWindow(QMainWindow):
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
-    def SetFrequencyRanges(self,filename):
-        if self.ui.stackedWidget.currentIndex() == 1:
-            self.Bass = self.Drums = self.Keyboard = self.Guitar = PlotLine()
-            self.Bass.name = filename.replace(".mp3","") + " - Bass.mp3"
-            self.Drums.name = filename.replace(".mp3","") + " - Drums.mp3"
-            self.Keyboard.name = filename.replace(".mp3","") + " - Keyboard.mp3"
-            self.Guitar.name = filename.replace(".mp3","") + " - Guitar.mp3"
-            list = [self.Bass,self.Drums,self.Keyboard,self.Guitar]
-            for plot in list:
-                data, fs = a2n.audio_from_file(plot.name)
-                plot.fs=fs
-                plot.SetData(data,fs)
+    # def SetFrequencyRanges(self,filename):
+    #     if self.ui.stackedWidget.currentIndex() == 1:
+    #         self.Bass = self.Drums = self.Keyboard = self.Guitar = PlotLine()
+    #         self.Bass.name = filename.replace(".mp3","") + " - Bass.mp3"
+    #         self.Drums.name = filename.replace(".mp3","") + " - Drums.mp3"
+    #         self.Keyboard.name = filename.replace(".mp3","") + " - Keyboard.mp3"
+    #         self.Guitar.name = filename.replace(".mp3","") + " - Guitar.mp3"
+    #         list = [self.Bass,self.Drums,self.Keyboard,self.Guitar]
+    #         for plot in list:
+    #             data, fs = a2n.audio_from_file(plot.name)
+    #             plot.fs=fs
+    #             plot.SetData(data,fs)
 
     def UpdateComposed(self):
         data, fs = a2n.audio_from_file("ComposedSound.mp3")
@@ -465,7 +470,7 @@ class MyWindow(QMainWindow):
             self.plotWidget1.setXRange(xmin+0.1,xmax+0.1,padding=0)
             self.plotWidget4.setXRange(xmin+0.1,xmax+0.1,padding=0)
         
-        elif self.ui.stackedWidget.currentIndex() == 1:
+        elif self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
            self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
            self.plotWidget4.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
         #self.timePos = pygame.mixer.get_pos()/1000
@@ -521,6 +526,49 @@ class MyWindow(QMainWindow):
                 modified_spectrum[indices] *= amplification_factor
             
             frequency_ranges = [(-100,0),(-250,-100),(-1200,-300),(-4186,-1200)] #Drums,Bass,Violin,Piano            
+            for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
+                amplification_factor = slider.value() * 0.2
+
+                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+                # Adjust the magnitude in the frequency domain
+                modified_spectrum[indices] *= amplification_factor
+            self.plotFrequencyDomain(frequency_axis,modified_spectrum,positive_freq_indices)
+
+            # Compute the inverse Fourier Transform to get the modified signal
+            modified_signal = np.fft.ifft(modified_spectrum).real
+
+            # Update the plot with the modified signal in the time domain
+            self.plotWidget4.clear()
+            self.input.data_line = self.plotWidget4.plot(
+                self.input.time_axis, modified_signal, name=self.input.name
+            )
+            self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
+            self.UpdateAudio(self.input.time_axis,modified_signal,self.input.fs)
+            self.plotWidget3.setLabel('left', 'Amplitude')
+            self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
+
+        elif self.ui.stackedWidget.currentIndex() == 2:
+            original_spectrum = self.input.fft
+            frequency_axis = self.input.FrequencySamples
+            positive_freq_indices = np.where(frequency_axis > 0)
+            signal_min_freq = frequency_axis[positive_freq_indices].min()
+            signal_max_freq = frequency_axis[positive_freq_indices].max()
+            Sliders = [self.animalsSlider1,self.animalsSlider2,self.animalsSlider3,self.animalsSlider4]
+            frequency_ranges = [(200,2500), (2500,20000) , (0,0) , (0 ,0)] #lion, elephant cat dog
+            # frequency_ranges = [(10,1400),(1400,2500),(2500,4000),(4000,11000)] #lion, elephant cat dog
+            modified_spectrum = np.copy(original_spectrum)
+
+            for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
+                amplification_factor = slider.value() * 0.2
+
+                # Find the indices of the frequency range
+                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+
+                # Adjust the magnitude in the frequency domain
+                modified_spectrum[indices] *= amplification_factor
+            
+            frequency_ranges = [(-2500,-200),(-20000,-2500),(0,0) , (0,0)] #lion, elephant cat dog           
+            # frequency_ranges = [(-1400,-10),(-2500,-1400),(-4000,-2500) , (-11000,-4000)] #lion, elephant cat dog           
             for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
                 amplification_factor = slider.value() * 0.2
 
