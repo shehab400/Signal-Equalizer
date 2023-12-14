@@ -59,13 +59,15 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget.setCurrentIndex(0)
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
+        self.ui.playPauseSound.clicked.connect(self.Pause)
+        
 
         pygame.mixer.init()
         self.worker = Worker()
         self.worker_thread = QThread()
 
         self.timePos = 0
-        self.sounds = None
+        self.ispaused = False
 
         self.worker.progress.connect(self.UpdatePlots)
         self.worker.completed.connect(self.Complete)
@@ -260,8 +262,8 @@ class MyWindow(QMainWindow):
         layout6.addWidget(self.plotWidget6 )
         self.ui.widget_8.setLayout(layout6)
 
-        self.plotWidget1.setMouseEnabled(x=False,y=False)
-        self.plotWidget4.setMouseEnabled(x=False, y=False)
+        self.plotWidget1.setMouseEnabled(x=True,y=False)
+        self.plotWidget4.setMouseEnabled(x=True, y=False)
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
@@ -338,10 +340,12 @@ class MyWindow(QMainWindow):
             #self.SetFrequencyRanges(path)
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.update_frequency_components()
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,2)
-
+            self.timePos = 0
+            pygame.mixer.music.unload()
             pygame.mixer.music.load(path)
             pygame.mixer.music.play()
 
@@ -361,6 +365,7 @@ class MyWindow(QMainWindow):
             self.input.SetData(data,fs)
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.update_frequency_components()
 
@@ -408,11 +413,27 @@ class MyWindow(QMainWindow):
             self.input.FrequencySamples = np.fft.fftfreq(len(column_data), 1/fs)
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.plotWidget1.setXRange(0,10,padding=0)
             # self.update_frequency_components()
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
+
+    def Pause(self):
+        if self.ispaused == False:
+            pygame.mixer.music.pause()
+            self.ispaused = True
+        elif self.ispaused == True:
+            pygame.mixer.music.unpause()
+            self.ispaused = False
+
+    def Rewind(self):
+        if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
+            pygame.mixer.music.rewind()
+        elif self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
+            self.plotWidget1.setXRange(0,10,padding=0)
+            self.plotWidget4.setXRange(0,10,padding=0)
 
     # def SetFrequencyRanges(self,filename):
     #     if self.ui.stackedWidget.currentIndex() == 1:
@@ -465,10 +486,11 @@ class MyWindow(QMainWindow):
         # self.input.pen = pg.mkPen(color = random_rgb)
         # self.input.data_line.setPen(self.input.pen)
         if self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
-            xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
-            xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
-            self.plotWidget1.setXRange(xmin+0.1,xmax+0.1,padding=0)
-            self.plotWidget4.setXRange(xmin+0.1,xmax+0.1,padding=0)
+            if self.ispaused == False:
+                xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
+                xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
+                self.plotWidget1.setXRange(xmin+0.1,xmax+0.1,padding=0)
+                self.plotWidget4.setXRange(xmin+0.1,xmax+0.1,padding=0)
         
         elif self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
            self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
@@ -477,6 +499,7 @@ class MyWindow(QMainWindow):
 
     def Complete(self):
         self.plotWidget1.setXRange(0,self.input.time_axis.max())
+        self.plotWidget4.setXRange(0,self.input.time_axis.max())
         
     def generate_spectrogram(self, time_axis, sound_axis, fs,flag):
         if flag==1:
@@ -538,9 +561,7 @@ class MyWindow(QMainWindow):
 
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
-            self.input.data_line = self.plotWidget4.plot(
-                self.input.time_axis, modified_signal, name=self.input.name
-            )
+            self.input.data_line = self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
             self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
             self.UpdateAudio(self.input.time_axis,modified_signal,self.input.fs)
             self.plotWidget3.setLabel('left', 'Amplitude')
