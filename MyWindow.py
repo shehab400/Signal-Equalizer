@@ -510,28 +510,27 @@ class MyWindow(QMainWindow):
             original_spectrum = self.input.fft
             frequency_axis = self.input.FrequencySamples
             positive_freq_indices = np.where(frequency_axis > 0)
-            signal_min_freq = frequency_axis[positive_freq_indices].min()
-            signal_max_freq = frequency_axis[positive_freq_indices].max()
             Sliders = [self.musicSlider1,self.musicSlider2,self.musicSlider3,self.musicSlider4]
-            frequency_ranges = [(0,100),(100,250),(300,1200),(1200,4186)] #Drums,Bass,Violin,Piano
+            frequency_ranges = [(300,1000),(900,3000),(0,300),(2000,10000)] #Piano,Guitar,Bass,Flute
             modified_spectrum = np.copy(original_spectrum)
 
             for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
                 amplification_factor = slider.value() * 0.2
 
                 # Find the indices of the frequency range
-                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-
+                pos_indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+                neg_indices = np.where((frequency_axis >= -freq_max) & (frequency_axis <= -freq_min))
                 # Adjust the magnitude in the frequency domain
-                modified_spectrum[indices] *= amplification_factor
+                modified_spectrum[pos_indices] *= amplification_factor
+                modified_spectrum[neg_indices] *= amplification_factor
             
-            frequency_ranges = [(-100,0),(-250,-100),(-1200,-300),(-4186,-1200)] #Drums,Bass,Violin,Piano            
-            for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
-                amplification_factor = slider.value() * 0.2
+            # frequency_ranges = [(-100,0),(-250,-100),(-1200,-300),(-4186,-1200)]   
+            # for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
+            #     amplification_factor = slider.value() * 0.2
 
-                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-                # Adjust the magnitude in the frequency domain
-                modified_spectrum[indices] *= amplification_factor
+            #     indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+            #     # Adjust the magnitude in the frequency domain
+            #     modified_spectrum[indices] *= amplification_factor
             self.plotFrequencyDomain(frequency_axis,modified_spectrum,positive_freq_indices)
 
             # Compute the inverse Fourier Transform to get the modified signal
