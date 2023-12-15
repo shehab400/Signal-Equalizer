@@ -60,6 +60,8 @@ class MyWindow(QMainWindow):
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
         self.ui.playPauseSound.clicked.connect(self.Pause)
+        self.ui.zoomIn.clicked.connect(self.ZoomIn)
+        self.ui.zoomOut.clicked.connect(self.ZoomOut)
         
 
         pygame.mixer.init()
@@ -67,8 +69,9 @@ class MyWindow(QMainWindow):
         self.worker_thread = QThread()
 
         self.timePos = 0
-        self.ZoomFactor=0
+        self.ZoomFactor = 0
         self.ispaused = False
+       
         
 
         self.worker.progress.connect(self.UpdatePlots)
@@ -410,14 +413,7 @@ class MyWindow(QMainWindow):
             self.input.fs=fs
             self.input.time_axis=time_values
             self.input.sound_axis=values
-            # signal = np.frombuffer(self.input.sound_axis, dtype=np.int32)
-            # # Determine the number of rows (adjust as needed based on your data)
-            # num_rows = len(signal) // 2
-            # # Reshape the 1D array to a 2D array
-            # signal_2d = signal.reshape((num_rows, -1))
-            # # Extract the desired column
-            # column_data = signal_2d[:, 1]
-            # # Compute the FFT on the extracted column
+           
             self.input.fft = np.fft.fft(values)
             # Calculate the frequency axis
             fs = 500.0  # fs for any medical signal from physionet 
@@ -430,9 +426,12 @@ class MyWindow(QMainWindow):
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
+    
     def ZoomIn(self):
         if self.ZoomFactor > -9:
             self.ZoomFactor -= 1
+    def ZoomOut(self):
+        self.ZoomFactor += 1
     def ZoomOut(self):
         self.ZoomFactor += 1
     def Pause(self):
@@ -463,15 +462,15 @@ class MyWindow(QMainWindow):
     #             plot.fs=fs
     #             plot.SetData(data,fs)
 
-    def UpdateComposed(self):
-        data, fs = a2n.audio_from_file("ComposedSound.mp3")
+    # def UpdateComposed(self):
+    #     data, fs = a2n.audio_from_file("ComposedSound.mp3")
         
-        self.input = PlotLine()
-        self.input.name = "ComposedSound"
-        self.input.fs=fs
-        self.input.SetData(data,fs)
-        self.plotWidget1.clear()
-        self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+    #     self.input = PlotLine()
+    #     self.input.name = "ComposedSound"
+    #     self.input.fs=fs
+    #     self.input.SetData(data,fs)
+    #     self.plotWidget1.clear()
+    #     self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
 
     # def KeyboardAdjustor(self):
     #     if self.sounds != None:
@@ -577,6 +576,7 @@ class MyWindow(QMainWindow):
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
             self.input.data_line = self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
+            self.plotWidget4.setLimits(xMin = 0,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
             self.UpdateAudio(self.input.time_axis,modified_signal,self.input.fs)
             self.plotWidget3.setLabel('left', 'Amplitude')
@@ -617,9 +617,8 @@ class MyWindow(QMainWindow):
 
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
-            self.input.data_line = self.plotWidget4.plot(
-                self.input.time_axis, modified_signal, name=self.input.name
-            )
+            self.input.data_line = self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
+            self.plotWidget4.setLimits(xMin = 0,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
             self.UpdateAudio(self.input.time_axis,modified_signal,self.input.fs)
             self.plotWidget3.setLabel('left', 'Amplitude')
@@ -697,9 +696,8 @@ class MyWindow(QMainWindow):
 
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
-            self.input.data_line = self.plotWidget4.plot(
-                self.input.time_axis, modified_signal, name=self.input.name
-            )
+            self.input.data_line = self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
+            self.plotWidget4.setLimits(xMin = 0,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
             # self.plotWidget4.setXRange(0, self.input.time_axis.max())
             self.plotWidget3.setLabel('left', 'Amplitude')
