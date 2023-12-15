@@ -30,10 +30,13 @@ import pandas as pd
 class Worker(QObject):
     progress = Signal(int)
     completed = Signal(int)
+    end = False
     @Slot(int)
     def do_work(self, n):
         global i
         for i in np.arange(1,n+1,0.1):
+            if self.end == True:
+                break
             time.sleep(0.1)
             self.progress.emit(i)
         self.completed.emit(i)
@@ -62,6 +65,8 @@ class MyWindow(QMainWindow):
         self.ui.playPauseSound.clicked.connect(self.Pause)
         self.ui.zoomIn.clicked.connect(self.ZoomIn)
         self.ui.zoomOut.clicked.connect(self.ZoomOut)
+        self.ui.stop.clicked.connect(self.Stop)
+        self.ui.reset.clicked.connect(self.Reset)
         
 
         pygame.mixer.init()
@@ -71,6 +76,8 @@ class MyWindow(QMainWindow):
         self.timePos = 0
         self.ZoomFactor = 0
         self.ispaused = False
+       
+        
 
         self.worker.progress.connect(self.UpdatePlots)
         self.worker.completed.connect(self.Complete)
@@ -85,16 +92,16 @@ class MyWindow(QMainWindow):
         self.worker_thread.start()
 
         #
-        self.unifromSlider1 = self.findChild(QSlider, "verticalSlider")
-        self.unifromSlider2 = self.findChild(QSlider, "verticalSlider_2")
-        self.unifromSlider3 = self.findChild(QSlider, "verticalSlider_3")
-        self.unifromSlider4 = self.findChild(QSlider, "verticalSlider_4")
-        self.unifromSlider5 = self.findChild(QSlider, "verticalSlider_5")
-        self.unifromSlider6 = self.findChild(QSlider, "verticalSlider_6")
-        self.unifromSlider7 = self.findChild(QSlider, "verticalSlider_7")
-        self.unifromSlider8 = self.findChild(QSlider, "verticalSlider_8")
-        self.unifromSlider9 = self.findChild(QSlider, "verticalSlider_9")
-        self.unifromSlider10 = self.findChild(QSlider, "verticalSlider_10")
+        self.uniformSlider1 = self.findChild(QSlider, "verticalSlider")
+        self.uniformSlider2 = self.findChild(QSlider, "verticalSlider_2")
+        self.uniformSlider3 = self.findChild(QSlider, "verticalSlider_3")
+        self.uniformSlider4 = self.findChild(QSlider, "verticalSlider_4")
+        self.uniformSlider5 = self.findChild(QSlider, "verticalSlider_5")
+        self.uniformSlider6 = self.findChild(QSlider, "verticalSlider_6")
+        self.uniformSlider7 = self.findChild(QSlider, "verticalSlider_7")
+        self.uniformSlider8 = self.findChild(QSlider, "verticalSlider_8")
+        self.uniformSlider9 = self.findChild(QSlider, "verticalSlider_9")
+        self.uniformSlider10 = self.findChild(QSlider, "verticalSlider_10")
         self.musicSlider1 = self.findChild(QSlider, "verticalSlider_11")
         self.musicSlider2 = self.findChild(QSlider, "verticalSlider_12")
         self.musicSlider3 = self.findChild(QSlider, "verticalSlider_13")
@@ -108,16 +115,16 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider3 = self.findChild(QSlider, "verticalSlider_21")
         self.medicalSignalSlider4 = self.findChild(QSlider, "verticalSlider_22")
         #
-        self.ui.unifromSlider1.setMinimum(0)
-        self.ui.unifromSlider2.setMinimum(0)
-        self.ui.unifromSlider3.setMinimum(0)
-        self.ui.unifromSlider4.setMinimum(0)
-        self.ui.unifromSlider5.setMinimum(0)
-        self.ui.unifromSlider6.setMinimum(0)
-        self.ui.unifromSlider7.setMinimum(0)
-        self.ui.unifromSlider8.setMinimum(0)
-        self.ui.unifromSlider9.setMinimum(0)
-        self.ui.unifromSlider10.setMinimum(0)
+        self.ui.uniformSlider1.setMinimum(0)
+        self.ui.uniformSlider2.setMinimum(0)
+        self.ui.uniformSlider3.setMinimum(0)
+        self.ui.uniformSlider4.setMinimum(0)
+        self.ui.uniformSlider5.setMinimum(0)
+        self.ui.uniformSlider6.setMinimum(0)
+        self.ui.uniformSlider7.setMinimum(0)
+        self.ui.uniformSlider8.setMinimum(0)
+        self.ui.uniformSlider9.setMinimum(0)
+        self.ui.uniformSlider10.setMinimum(0)
         self.ui.musicSlider1.setMinimum(0)
         self.ui.musicSlider2.setMinimum(0)
         self.ui.musicSlider3.setMinimum(0)
@@ -131,16 +138,16 @@ class MyWindow(QMainWindow):
         self.ui.medicalSignalSlider3.setMinimum(0)
         self.ui.medicalSignalSlider4.setMinimum(0)
         #
-        self.unifromSlider1.setMaximum(10)
-        self.unifromSlider2.setMaximum(10)
-        self.unifromSlider3.setMaximum(10)
-        self.unifromSlider4.setMaximum(10)
-        self.unifromSlider5.setMaximum(10)
-        self.unifromSlider6.setMaximum(10)
-        self.unifromSlider7.setMaximum(10)
-        self.unifromSlider8.setMaximum(10)
-        self.unifromSlider9.setMaximum(10)
-        self.unifromSlider10.setMaximum(10)
+        self.uniformSlider1.setMaximum(10)
+        self.uniformSlider2.setMaximum(10)
+        self.uniformSlider3.setMaximum(10)
+        self.uniformSlider4.setMaximum(10)
+        self.uniformSlider5.setMaximum(10)
+        self.uniformSlider6.setMaximum(10)
+        self.uniformSlider7.setMaximum(10)
+        self.uniformSlider8.setMaximum(10)
+        self.uniformSlider9.setMaximum(10)
+        self.uniformSlider10.setMaximum(10)
         self.musicSlider1.setMaximum(10)
         self.musicSlider2.setMaximum(10)
         self.musicSlider3.setMaximum(10)
@@ -154,16 +161,16 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider3.setMaximum(10)
         self.medicalSignalSlider4.setMaximum(10)
         #
-        self.unifromSlider1.setValue(5)
-        self.unifromSlider2.setValue(5)
-        self.unifromSlider3.setValue(5)
-        self.unifromSlider4.setValue(5)
-        self.unifromSlider5.setValue(5)
-        self.unifromSlider6.setValue(5)
-        self.unifromSlider7.setValue(5)
-        self.unifromSlider8.setValue(5)
-        self.unifromSlider9.setValue(5)
-        self.unifromSlider10.setValue(5)
+        self.uniformSlider1.setValue(5)
+        self.uniformSlider2.setValue(5)
+        self.uniformSlider3.setValue(5)
+        self.uniformSlider4.setValue(5)
+        self.uniformSlider5.setValue(5)
+        self.uniformSlider6.setValue(5)
+        self.uniformSlider7.setValue(5)
+        self.uniformSlider8.setValue(5)
+        self.uniformSlider9.setValue(5)
+        self.uniformSlider10.setValue(5)
         self.musicSlider1.setValue(5)
         self.musicSlider2.setValue(5)
         self.musicSlider3.setValue(5)
@@ -176,26 +183,18 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider2.setValue(5)
         self.medicalSignalSlider3.setValue(5)
         self.medicalSignalSlider4.setValue(5)
-        self.ui.verticalSlider_11.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_12.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_13.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_14.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_15.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_16.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_17.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_18.valueChanged.connect(self.update_frequency_components)
 
         #
-        self.unifromSlider1.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider2.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider3.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider4.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider5.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider6.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider7.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider8.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider9.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider10.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider1.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider2.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider3.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider4.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider5.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider6.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider7.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider8.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider9.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider10.setTickPosition(QSlider.TicksLeft)
         self.musicSlider1.setTickPosition(QSlider.TicksLeft)
         self.musicSlider2.setTickPosition(QSlider.TicksLeft)
         self.musicSlider3.setTickPosition(QSlider.TicksLeft)
@@ -208,17 +207,14 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider2.setTickPosition(QSlider.TicksLeft)
         self.medicalSignalSlider3.setTickPosition(QSlider.TicksLeft)
         self.medicalSignalSlider4.setTickPosition(QSlider.TicksLeft)
-        # connect uniform sliders to the uniform function
-        for slider in [
-            self.unifromSlider1, self.unifromSlider2, self.unifromSlider3, self.unifromSlider4,
-            self.unifromSlider5, self.unifromSlider6, self.unifromSlider7, self.unifromSlider8,
-            self.unifromSlider9, self.unifromSlider10
-        ]:
+        # connect sliders to the function
+        for slider in [self.musicSlider1,self.musicSlider2,self.musicSlider3,self.musicSlider4]:
             slider.valueChanged.connect(self.update_frequency_components)
-             # connect medical sliders to the arythmia function
-        for slider in [
-            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4
-        ]:
+        for slider in [self.animalsSlider1,self.animalsSlider2,self.animalsSlider3,self.animalsSlider4]:
+            slider.valueChanged.connect(self.update_frequency_components)
+        for slider in [self.uniformSlider1, self.uniformSlider2, self.uniformSlider3, self.uniformSlider4,self.uniformSlider5, self.uniformSlider6, self.uniformSlider7, self.uniformSlider8,self.uniformSlider9, self.uniformSlider10]:
+            slider.valueChanged.connect(self.update_frequency_components)
+        for slider in [self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4]:
             slider.valueChanged.connect(self.arrhythmiaRemoval)
         #
         self.plotWidget1 = pg.PlotWidget()
@@ -386,10 +382,12 @@ class MyWindow(QMainWindow):
                 binary_data = file.read()
                 
                 # Convert binary data to a 1D array of integers
-                values = np.frombuffer(binary_data, dtype=np.int16)
+                values2= np.frombuffer(binary_data, dtype=np.int32)
+                data1=values2.copy()
+                values=data1[:9000]
                 
                #fs is already known in medical signals
-                fs = 250.0  # Sample rate in Hz
+                fs = 500.0  # Sample rate in Hz
                 
                 # Calculate time values
                 time_values = np.arange(0, len(values) / fs, 1 / fs)
@@ -398,6 +396,8 @@ class MyWindow(QMainWindow):
                 data=file1.read()
             # normal_ecg=pd.read_csv(path1, usecols=["time", "amplitude"])
             normal_ecg=np.frombuffer(data, dtype=np.int32)
+            # data1=normal_ecg1.copy()
+            # normal_ecg=data1[:10000]
             uniform_fft = np.fft.fft(normal_ecg)
             # print(uniform_fft)
             self.input = PlotLine()
@@ -407,14 +407,7 @@ class MyWindow(QMainWindow):
             self.input.fs=fs
             self.input.time_axis=time_values
             self.input.sound_axis=values
-            # signal = np.frombuffer(self.input.sound_axis, dtype=np.int32)
-            # # Determine the number of rows (adjust as needed based on your data)
-            # num_rows = len(signal) // 2
-            # # Reshape the 1D array to a 2D array
-            # signal_2d = signal.reshape((num_rows, -1))
-            # # Extract the desired column
-            # column_data = signal_2d[:, 1]
-            # # Compute the FFT on the extracted column
+           
             self.input.fft = np.fft.fft(values)
             # Calculate the frequency axis
             fs = 500.0  # fs for any medical signal from physionet 
@@ -427,10 +420,11 @@ class MyWindow(QMainWindow):
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
+    
     def ZoomIn(self):
         if self.ZoomFactor > -9:
             self.ZoomFactor -= 1
-
+        
     def ZoomOut(self):
         self.ZoomFactor += 1
 
@@ -442,12 +436,31 @@ class MyWindow(QMainWindow):
             pygame.mixer.music.unpause()
             self.ispaused = False
 
-    def Rewind(self):
-        if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
-            pygame.mixer.music.rewind()
-        elif self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
-            self.plotWidget1.setXRange(0,10,padding=0)
-            self.plotWidget4.setXRange(0,10,padding=0)
+    def Stop(self):
+        pygame.mixer.music.unload()
+        self.plotWidget1.clear()
+        self.plotWidget2.clear()
+        self.matplotlib_axes.clear()
+        self.plotWidget3.clear()
+        self.plotWidget4.clear()
+        self.matplotlib_axes2.clear()
+        self.plotWidget5.clear()
+        self.worker.end = True
+
+    def Reset(self):
+        sliders = [self.uniformSlider1,self.uniformSlider2,self.uniformSlider3,self.uniformSlider4,self.uniformSlider5,self.uniformSlider6,self.uniformSlider7,self.uniformSlider8,self.uniformSlider9,self.uniformSlider10,
+                   self.musicSlider1,self.musicSlider2,self.musicSlider3,self.musicSlider4,
+                   self.animalsSlider1,self.animalsSlider2,self.animalsSlider3,self.animalsSlider4,
+                   self.medicalSignalSlider1,self.medicalSignalSlider2,self.medicalSignalSlider3,self.medicalSignalSlider4]
+        for slider in sliders:
+            slider.setValue(5)
+
+    # def Rewind(self):
+    #     if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
+    #         pygame.mixer.music.rewind()
+    #     elif self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
+    #         self.plotWidget1.setXRange(0,10,padding=0)
+    #         self.plotWidget4.setXRange(0,10,padding=0)
 
     # def SetFrequencyRanges(self,filename):
     #     if self.ui.stackedWidget.currentIndex() == 1:
@@ -644,9 +657,9 @@ class MyWindow(QMainWindow):
 
             # Get the slider values
             uniform_sliders = [
-                self.unifromSlider1, self.unifromSlider2, self.unifromSlider3, self.unifromSlider4,
-                self.unifromSlider5, self.unifromSlider6, self.unifromSlider7, self.unifromSlider8,
-                self.unifromSlider9, self.unifromSlider10
+                self.uniformSlider1, self.uniformSlider2, self.uniformSlider3, self.uniformSlider4,
+                self.uniformSlider5, self.uniformSlider6, self.uniformSlider7, self.uniformSlider8,
+                self.uniformSlider9, self.uniformSlider10
             ]
 
             # Calculate the frequency range for each slider based on the loaded signal's range
@@ -720,31 +733,53 @@ class MyWindow(QMainWindow):
 
         # Get the slider values
         medical_sliders = [
-            self.medicalSignalSlider1, self.medicalSignalSlider1, self.medicalSignalSlider1, self.medicalSignalSlider1
+            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4
         ]
 
-        # Calculate the arythmia frequencies
+        # Calculate the arrhythmia frequencies
         arythmia_freq = set(self.input.FrequencySamples[positive_freq_indices]) - set(self.input.uniform_fftfreq[positive_freq_indices2])
         print(arythmia_freq)
-        indices = np.where((self.input.FrequencySamples[positive_freq_indices] >= 30) & (self.input.FrequencySamples[positive_freq_indices] <= 180))
-        # Find the indices of arythmia frequencies in the frequency array
-        # arythmia_indices = np.where(np.isin(self.input.FrequencySamples, list(arythmia_freq)))
+        arythmia_freq = np.array(list(arythmia_freq)) 
+        # print(len(self.input.FrequencySamples[positive_freq_indices]))
+        # print(len(original_spectrum[positive_freq_indices]))
+        # print(len(self.input.uniform_fft[positive_freq_indices2]))
+        # Get the magnitude difference for each frequency
+        # magnitude_difference = np.abs(original_spectrum[positive_freq_indices] - self.input.uniform_fft[positive_freq_indices2])
 
-        for slider in medical_sliders:
+        # # Sort frequencies based on magnitude difference
+        # sorted_indices = np.argsort(magnitude_difference)[::-1]
+
+        # # Select the top frequencies
+        # top_frequencies = self.input.FrequencySamples[positive_freq_indices][sorted_indices]
+
+        # # Get the indices corresponding to the top frequencies
+        # top_indices = positive_freq_indices[0][sorted_indices[:2000]]
+
+        # # Print or use the top frequencies and indices as needed
+        # print("Top Important Frequencies:", top_frequencies)
+        # print("Top Important Frequencies Indices:", top_indices)
+
+          # Find the indices of arrhythmia frequencies in the frequency array
+        # indices = np.where(np.isin(self.input.FrequencySamples[positive_freq_indices], list(arythmia_freq)))
+        # indices = np.where((self.input.FrequencySamples[positive_freq_indices] >= 30) & (self.input.FrequencySamples[positive_freq_indices] <= 180))
+        
+
+        frequency_Ranges=[(0,80),(90,150),(160,200) , (210,300)]
+        for slider , (freq_min, freq_max) in  zip (medical_sliders,frequency_Ranges):
             amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
-            amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-            modified_spectrum[indices] *= amplitude
+            if slider.value()!=5:
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                # modified_spectrum[top_indices] *= amplitude
+                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+                modified_spectrum[indices] *= amplitude
 
-        self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum,positive_freq_indices)
+        self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum, positive_freq_indices)
         # Compute the inverse Fourier Transform to get the modified signal
         modified_signal = np.fft.ifft(modified_spectrum).real
-
-        # # Print the lengths for debugging
-        # print(len(modified_signal))
-        # print(len(self.input.time_axis))
 
         # Update the plot with the modified signal in the time domain
         self.plotWidget4.clear()
         self.input.data_line = self.plotWidget4.plot(
             self.input.time_axis, modified_signal, name=self.input.name
         )
+

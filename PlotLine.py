@@ -12,6 +12,7 @@ class PlotLine:
         self.fft = None
         self.FrequencySamples = None
         self.uniform_fftfreq=None
+        self.uniform_fft=None
 
     def SetData(self,data, fs):
         n = len(data)  # the length of the arrays contained in data
