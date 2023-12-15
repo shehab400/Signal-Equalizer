@@ -71,6 +71,8 @@ class MyWindow(QMainWindow):
         self.timePos = 0
         self.ZoomFactor = 0
         self.ispaused = False
+       
+        
 
         self.worker.progress.connect(self.UpdatePlots)
         self.worker.completed.connect(self.Complete)
@@ -386,10 +388,12 @@ class MyWindow(QMainWindow):
                 binary_data = file.read()
                 
                 # Convert binary data to a 1D array of integers
-                values = np.frombuffer(binary_data, dtype=np.int16)
+                values2= np.frombuffer(binary_data, dtype=np.int32)
+                data1=values2.copy()
+                values=data1[:9000]
                 
                #fs is already known in medical signals
-                fs = 250.0  # Sample rate in Hz
+                fs = 500.0  # Sample rate in Hz
                 
                 # Calculate time values
                 time_values = np.arange(0, len(values) / fs, 1 / fs)
@@ -398,6 +402,8 @@ class MyWindow(QMainWindow):
                 data=file1.read()
             # normal_ecg=pd.read_csv(path1, usecols=["time", "amplitude"])
             normal_ecg=np.frombuffer(data, dtype=np.int32)
+            # data1=normal_ecg1.copy()
+            # normal_ecg=data1[:10000]
             uniform_fft = np.fft.fft(normal_ecg)
             # print(uniform_fft)
             self.input = PlotLine()
@@ -407,14 +413,7 @@ class MyWindow(QMainWindow):
             self.input.fs=fs
             self.input.time_axis=time_values
             self.input.sound_axis=values
-            # signal = np.frombuffer(self.input.sound_axis, dtype=np.int32)
-            # # Determine the number of rows (adjust as needed based on your data)
-            # num_rows = len(signal) // 2
-            # # Reshape the 1D array to a 2D array
-            # signal_2d = signal.reshape((num_rows, -1))
-            # # Extract the desired column
-            # column_data = signal_2d[:, 1]
-            # # Compute the FFT on the extracted column
+           
             self.input.fft = np.fft.fft(values)
             # Calculate the frequency axis
             fs = 500.0  # fs for any medical signal from physionet 
@@ -427,13 +426,14 @@ class MyWindow(QMainWindow):
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
+    
     def ZoomIn(self):
         if self.ZoomFactor > -9:
             self.ZoomFactor -= 1
-
     def ZoomOut(self):
         self.ZoomFactor += 1
-
+    def ZoomOut(self):
+        self.ZoomFactor += 1
     def Pause(self):
         if self.ispaused == False:
             pygame.mixer.music.pause()
@@ -720,31 +720,53 @@ class MyWindow(QMainWindow):
 
         # Get the slider values
         medical_sliders = [
-            self.medicalSignalSlider1, self.medicalSignalSlider1, self.medicalSignalSlider1, self.medicalSignalSlider1
+            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4
         ]
 
-        # Calculate the arythmia frequencies
+        # Calculate the arrhythmia frequencies
         arythmia_freq = set(self.input.FrequencySamples[positive_freq_indices]) - set(self.input.uniform_fftfreq[positive_freq_indices2])
         print(arythmia_freq)
-        indices = np.where((self.input.FrequencySamples[positive_freq_indices] >= 30) & (self.input.FrequencySamples[positive_freq_indices] <= 180))
-        # Find the indices of arythmia frequencies in the frequency array
-        # arythmia_indices = np.where(np.isin(self.input.FrequencySamples, list(arythmia_freq)))
+        arythmia_freq = np.array(list(arythmia_freq)) 
+        # print(len(self.input.FrequencySamples[positive_freq_indices]))
+        # print(len(original_spectrum[positive_freq_indices]))
+        # print(len(self.input.uniform_fft[positive_freq_indices2]))
+        # Get the magnitude difference for each frequency
+        # magnitude_difference = np.abs(original_spectrum[positive_freq_indices] - self.input.uniform_fft[positive_freq_indices2])
 
-        for slider in medical_sliders:
+        # # Sort frequencies based on magnitude difference
+        # sorted_indices = np.argsort(magnitude_difference)[::-1]
+
+        # # Select the top frequencies
+        # top_frequencies = self.input.FrequencySamples[positive_freq_indices][sorted_indices]
+
+        # # Get the indices corresponding to the top frequencies
+        # top_indices = positive_freq_indices[0][sorted_indices[:2000]]
+
+        # # Print or use the top frequencies and indices as needed
+        # print("Top Important Frequencies:", top_frequencies)
+        # print("Top Important Frequencies Indices:", top_indices)
+
+          # Find the indices of arrhythmia frequencies in the frequency array
+        # indices = np.where(np.isin(self.input.FrequencySamples[positive_freq_indices], list(arythmia_freq)))
+        # indices = np.where((self.input.FrequencySamples[positive_freq_indices] >= 30) & (self.input.FrequencySamples[positive_freq_indices] <= 180))
+        
+
+        frequency_Ranges=[(0,80),(90,150),(160,200) , (210,300)]
+        for slider , (freq_min, freq_max) in  zip (medical_sliders,frequency_Ranges):
             amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
-            amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-            modified_spectrum[indices] *= amplitude
+            if slider.value()!=5:
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                # modified_spectrum[top_indices] *= amplitude
+                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+                modified_spectrum[indices] *= amplitude
 
-        self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum,positive_freq_indices)
+        self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum, positive_freq_indices)
         # Compute the inverse Fourier Transform to get the modified signal
         modified_signal = np.fft.ifft(modified_spectrum).real
-
-        # # Print the lengths for debugging
-        # print(len(modified_signal))
-        # print(len(self.input.time_axis))
 
         # Update the plot with the modified signal in the time domain
         self.plotWidget4.clear()
         self.input.data_line = self.plotWidget4.plot(
             self.input.time_axis, modified_signal, name=self.input.name
         )
+
