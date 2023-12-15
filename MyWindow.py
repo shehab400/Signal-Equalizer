@@ -377,6 +377,17 @@ class MyWindow(QMainWindow):
         elif self.ui.stackedWidget.currentIndex() == 3: 
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
+            self.input = PlotLine()
+            if path=="C:/projects/DSP/Task 3/Signal-Equalizer/used arrhythemia signals/rec_1.dat":
+                self.input.arrhythmiaType=1
+            elif path=="C:/projects/DSP/Task 3/Signal-Equalizer/used arrhythemia signals/rec_3.dat":
+                self.input.arrhythmiaType=2
+            elif path=="C:/projects/DSP/Task 3/Signal-Equalizer/used arrhythemia signals/rec_2.dat":
+                self.input.arrhythmiaType=3
+            elif path=="C:/projects/DSP/Task 3/Signal-Equalizer/used arrhythemia signals/rec_4.dat":
+                self.input.arrhythmiaType=4
+                
+            print(path)
             with open(path, 'rb') as file:
                 # Read binary data
                 binary_data = file.read()
@@ -400,7 +411,6 @@ class MyWindow(QMainWindow):
             # normal_ecg=data1[:10000]
             uniform_fft = np.fft.fft(normal_ecg)
             # print(uniform_fft)
-            self.input = PlotLine()
             self.input.uniform_fft=uniform_fft
             self.input.uniform_fftfreq = np.fft.fftfreq(len(uniform_fft), 1/500)
             self.input.name = path
@@ -733,12 +743,12 @@ class MyWindow(QMainWindow):
 
         # Get the slider values
         medical_sliders = [
-            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4
+            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3
         ]
 
         # Calculate the arrhythmia frequencies
         arythmia_freq = set(self.input.FrequencySamples[positive_freq_indices]) - set(self.input.uniform_fftfreq[positive_freq_indices2])
-        print(arythmia_freq)
+        # print(arythmia_freq)
         arythmia_freq = np.array(list(arythmia_freq)) 
         # print(len(self.input.FrequencySamples[positive_freq_indices]))
         # print(len(original_spectrum[positive_freq_indices]))
@@ -762,16 +772,54 @@ class MyWindow(QMainWindow):
           # Find the indices of arrhythmia frequencies in the frequency array
         # indices = np.where(np.isin(self.input.FrequencySamples[positive_freq_indices], list(arythmia_freq)))
         # indices = np.where((self.input.FrequencySamples[positive_freq_indices] >= 30) & (self.input.FrequencySamples[positive_freq_indices] <= 180))
-        
-
-        frequency_Ranges=[(0,80),(90,150),(160,200) , (210,300)]
-        for slider , (freq_min, freq_max) in  zip (medical_sliders,frequency_Ranges):
-            amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
-            if slider.value()!=5:
+        print(self.input.arrhythmiaType)
+        if self.input.arrhythmiaType==1:
+            freq_min=0
+            freq_max=69
+            amplification_factor = self.medicalSignalSlider1.value() / 10.0  # Normalize the slider value to [0, 1]
+            if self.medicalSignalSlider1.value()!=5:
                 amplitude = amplification_factor * 2  # Square the amplitude for increased effect
                 # modified_spectrum[top_indices] *= amplitude
                 indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
                 modified_spectrum[indices] *= amplitude
+                
+            
+        if self.input.arrhythmiaType==2:
+            freq_min=70
+            freq_max=140
+            amplification_factor = self.medicalSignalSlider2.value() / 10.0  # Normalize the slider value to [0, 1]
+            if self.medicalSignalSlider2.value()!=5:
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                # modified_spectrum[top_indices] *= amplitude
+                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+                modified_spectrum[indices] *= amplitude
+        if self.input.arrhythmiaType==3:
+            freq_min=140
+            freq_max=200
+            amplification_factor = self.medicalSignalSlider3.value() / 10.0  # Normalize the slider value to [0, 1]
+            if self.medicalSignalSlider3.value()!=5:
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                # modified_spectrum[top_indices] *= amplitude
+                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+                modified_spectrum[indices] *= amplitude
+        if self.input.arrhythmiaType==4:
+            freq_min=200
+            freq_max=260
+            amplification_factor = self.medicalSignalSlider4.value() / 10.0  # Normalize the slider value to [0, 1]
+            if self.medicalSignalSlider4.value()!=5:
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                # modified_spectrum[top_indices] *= amplitude
+                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+                modified_spectrum[indices] *= amplitude
+                    
+        # frequency_Ranges=[(0,80),(90,150),(160,260)]
+        # for slider , (freq_min, freq_max) in  zip (medical_sliders,frequency_Ranges):
+        #     amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+        #     if slider.value()!=5:
+        #         amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+        #         # modified_spectrum[top_indices] *= amplitude
+        #         indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+        #         modified_spectrum[indices] *= amplitude
 
         self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum, positive_freq_indices)
         # Compute the inverse Fourier Transform to get the modified signal
@@ -782,4 +830,5 @@ class MyWindow(QMainWindow):
         self.input.data_line = self.plotWidget4.plot(
             self.input.time_axis, modified_signal, name=self.input.name
         )
+        self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
 
