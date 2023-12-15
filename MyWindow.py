@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import pandas as pd
 
+windowSize = 1000
 
 class Worker(QObject):
     progress = Signal(int)
@@ -67,7 +68,11 @@ class MyWindow(QMainWindow):
         self.ui.zoomOut.clicked.connect(self.ZoomOut)
         self.ui.stop.clicked.connect(self.Stop)
         self.ui.reset.clicked.connect(self.Reset)
-        
+        self.ui.Rect.clicked.connect(self.Rect)
+        self.ui.Hann.clicked.connect(self.Hann)
+        self.ui.Hamm.clicked.connect(self.Hamm)
+        self.ui.Gauss.clicked.connect(self.Gauss)
+ 
 
         pygame.mixer.init()
         self.worker = Worker()
@@ -263,6 +268,28 @@ class MyWindow(QMainWindow):
 
         # self.plotWidget1.setMouseEnabled(x=True,y=False)
         # self.plotWidget4.setMouseEnabled(x=True, y=False)
+
+    def Rect(self):
+        window = np.ones(windowSize)
+        x = np.arange(windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
+        
+    def Hann(self):
+        window = np.hanning(windowSize)
+        x = np.arange(self.windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
+
+    def Hamm(self):
+        window = np.hamming(windowSize)
+        x = np.arange(windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
+
+    def Gauss(self):
+        window = np.exp(-(0.5 * ((windowSize - 1) / 2 - np.arange(windowSize)
+                                ) / (gaussian_std * (windowSize -1)/2))**2)
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
