@@ -30,10 +30,13 @@ import pandas as pd
 class Worker(QObject):
     progress = Signal(int)
     completed = Signal(int)
+    end = False
     @Slot(int)
     def do_work(self, n):
         global i
         for i in np.arange(1,n+1,0.1):
+            if self.end == True:
+                break
             time.sleep(0.1)
             self.progress.emit(i)
         self.completed.emit(i)
@@ -62,6 +65,8 @@ class MyWindow(QMainWindow):
         self.ui.playPauseSound.clicked.connect(self.Pause)
         self.ui.zoomIn.clicked.connect(self.ZoomIn)
         self.ui.zoomOut.clicked.connect(self.ZoomOut)
+        self.ui.stop.clicked.connect(self.Stop)
+        self.ui.reset.clicked.connect(self.Reset)
         
 
         pygame.mixer.init()
@@ -87,16 +92,16 @@ class MyWindow(QMainWindow):
         self.worker_thread.start()
 
         #
-        self.unifromSlider1 = self.findChild(QSlider, "verticalSlider")
-        self.unifromSlider2 = self.findChild(QSlider, "verticalSlider_2")
-        self.unifromSlider3 = self.findChild(QSlider, "verticalSlider_3")
-        self.unifromSlider4 = self.findChild(QSlider, "verticalSlider_4")
-        self.unifromSlider5 = self.findChild(QSlider, "verticalSlider_5")
-        self.unifromSlider6 = self.findChild(QSlider, "verticalSlider_6")
-        self.unifromSlider7 = self.findChild(QSlider, "verticalSlider_7")
-        self.unifromSlider8 = self.findChild(QSlider, "verticalSlider_8")
-        self.unifromSlider9 = self.findChild(QSlider, "verticalSlider_9")
-        self.unifromSlider10 = self.findChild(QSlider, "verticalSlider_10")
+        self.uniformSlider1 = self.findChild(QSlider, "verticalSlider")
+        self.uniformSlider2 = self.findChild(QSlider, "verticalSlider_2")
+        self.uniformSlider3 = self.findChild(QSlider, "verticalSlider_3")
+        self.uniformSlider4 = self.findChild(QSlider, "verticalSlider_4")
+        self.uniformSlider5 = self.findChild(QSlider, "verticalSlider_5")
+        self.uniformSlider6 = self.findChild(QSlider, "verticalSlider_6")
+        self.uniformSlider7 = self.findChild(QSlider, "verticalSlider_7")
+        self.uniformSlider8 = self.findChild(QSlider, "verticalSlider_8")
+        self.uniformSlider9 = self.findChild(QSlider, "verticalSlider_9")
+        self.uniformSlider10 = self.findChild(QSlider, "verticalSlider_10")
         self.musicSlider1 = self.findChild(QSlider, "verticalSlider_11")
         self.musicSlider2 = self.findChild(QSlider, "verticalSlider_12")
         self.musicSlider3 = self.findChild(QSlider, "verticalSlider_13")
@@ -110,16 +115,16 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider3 = self.findChild(QSlider, "verticalSlider_21")
         self.medicalSignalSlider4 = self.findChild(QSlider, "verticalSlider_22")
         #
-        self.ui.unifromSlider1.setMinimum(0)
-        self.ui.unifromSlider2.setMinimum(0)
-        self.ui.unifromSlider3.setMinimum(0)
-        self.ui.unifromSlider4.setMinimum(0)
-        self.ui.unifromSlider5.setMinimum(0)
-        self.ui.unifromSlider6.setMinimum(0)
-        self.ui.unifromSlider7.setMinimum(0)
-        self.ui.unifromSlider8.setMinimum(0)
-        self.ui.unifromSlider9.setMinimum(0)
-        self.ui.unifromSlider10.setMinimum(0)
+        self.ui.uniformSlider1.setMinimum(0)
+        self.ui.uniformSlider2.setMinimum(0)
+        self.ui.uniformSlider3.setMinimum(0)
+        self.ui.uniformSlider4.setMinimum(0)
+        self.ui.uniformSlider5.setMinimum(0)
+        self.ui.uniformSlider6.setMinimum(0)
+        self.ui.uniformSlider7.setMinimum(0)
+        self.ui.uniformSlider8.setMinimum(0)
+        self.ui.uniformSlider9.setMinimum(0)
+        self.ui.uniformSlider10.setMinimum(0)
         self.ui.musicSlider1.setMinimum(0)
         self.ui.musicSlider2.setMinimum(0)
         self.ui.musicSlider3.setMinimum(0)
@@ -133,16 +138,16 @@ class MyWindow(QMainWindow):
         self.ui.medicalSignalSlider3.setMinimum(0)
         self.ui.medicalSignalSlider4.setMinimum(0)
         #
-        self.unifromSlider1.setMaximum(10)
-        self.unifromSlider2.setMaximum(10)
-        self.unifromSlider3.setMaximum(10)
-        self.unifromSlider4.setMaximum(10)
-        self.unifromSlider5.setMaximum(10)
-        self.unifromSlider6.setMaximum(10)
-        self.unifromSlider7.setMaximum(10)
-        self.unifromSlider8.setMaximum(10)
-        self.unifromSlider9.setMaximum(10)
-        self.unifromSlider10.setMaximum(10)
+        self.uniformSlider1.setMaximum(10)
+        self.uniformSlider2.setMaximum(10)
+        self.uniformSlider3.setMaximum(10)
+        self.uniformSlider4.setMaximum(10)
+        self.uniformSlider5.setMaximum(10)
+        self.uniformSlider6.setMaximum(10)
+        self.uniformSlider7.setMaximum(10)
+        self.uniformSlider8.setMaximum(10)
+        self.uniformSlider9.setMaximum(10)
+        self.uniformSlider10.setMaximum(10)
         self.musicSlider1.setMaximum(10)
         self.musicSlider2.setMaximum(10)
         self.musicSlider3.setMaximum(10)
@@ -156,16 +161,16 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider3.setMaximum(10)
         self.medicalSignalSlider4.setMaximum(10)
         #
-        self.unifromSlider1.setValue(5)
-        self.unifromSlider2.setValue(5)
-        self.unifromSlider3.setValue(5)
-        self.unifromSlider4.setValue(5)
-        self.unifromSlider5.setValue(5)
-        self.unifromSlider6.setValue(5)
-        self.unifromSlider7.setValue(5)
-        self.unifromSlider8.setValue(5)
-        self.unifromSlider9.setValue(5)
-        self.unifromSlider10.setValue(5)
+        self.uniformSlider1.setValue(5)
+        self.uniformSlider2.setValue(5)
+        self.uniformSlider3.setValue(5)
+        self.uniformSlider4.setValue(5)
+        self.uniformSlider5.setValue(5)
+        self.uniformSlider6.setValue(5)
+        self.uniformSlider7.setValue(5)
+        self.uniformSlider8.setValue(5)
+        self.uniformSlider9.setValue(5)
+        self.uniformSlider10.setValue(5)
         self.musicSlider1.setValue(5)
         self.musicSlider2.setValue(5)
         self.musicSlider3.setValue(5)
@@ -178,26 +183,18 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider2.setValue(5)
         self.medicalSignalSlider3.setValue(5)
         self.medicalSignalSlider4.setValue(5)
-        self.ui.verticalSlider_11.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_12.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_13.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_14.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_15.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_16.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_17.valueChanged.connect(self.update_frequency_components)
-        self.ui.verticalSlider_18.valueChanged.connect(self.update_frequency_components)
 
         #
-        self.unifromSlider1.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider2.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider3.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider4.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider5.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider6.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider7.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider8.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider9.setTickPosition(QSlider.TicksLeft)
-        self.unifromSlider10.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider1.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider2.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider3.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider4.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider5.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider6.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider7.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider8.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider9.setTickPosition(QSlider.TicksLeft)
+        self.uniformSlider10.setTickPosition(QSlider.TicksLeft)
         self.musicSlider1.setTickPosition(QSlider.TicksLeft)
         self.musicSlider2.setTickPosition(QSlider.TicksLeft)
         self.musicSlider3.setTickPosition(QSlider.TicksLeft)
@@ -210,17 +207,14 @@ class MyWindow(QMainWindow):
         self.medicalSignalSlider2.setTickPosition(QSlider.TicksLeft)
         self.medicalSignalSlider3.setTickPosition(QSlider.TicksLeft)
         self.medicalSignalSlider4.setTickPosition(QSlider.TicksLeft)
-        # connect uniform sliders to the uniform function
-        for slider in [
-            self.unifromSlider1, self.unifromSlider2, self.unifromSlider3, self.unifromSlider4,
-            self.unifromSlider5, self.unifromSlider6, self.unifromSlider7, self.unifromSlider8,
-            self.unifromSlider9, self.unifromSlider10
-        ]:
+        # connect sliders to the function
+        for slider in [self.musicSlider1,self.musicSlider2,self.musicSlider3,self.musicSlider4]:
             slider.valueChanged.connect(self.update_frequency_components)
-             # connect medical sliders to the arythmia function
-        for slider in [
-            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4
-        ]:
+        for slider in [self.animalsSlider1,self.animalsSlider2,self.animalsSlider3,self.animalsSlider4]:
+            slider.valueChanged.connect(self.update_frequency_components)
+        for slider in [self.uniformSlider1, self.uniformSlider2, self.uniformSlider3, self.uniformSlider4,self.uniformSlider5, self.uniformSlider6, self.uniformSlider7, self.uniformSlider8,self.uniformSlider9, self.uniformSlider10]:
+            slider.valueChanged.connect(self.update_frequency_components)
+        for slider in [self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4]:
             slider.valueChanged.connect(self.arrhythmiaRemoval)
         #
         self.plotWidget1 = pg.PlotWidget()
@@ -430,10 +424,10 @@ class MyWindow(QMainWindow):
     def ZoomIn(self):
         if self.ZoomFactor > -9:
             self.ZoomFactor -= 1
+        
     def ZoomOut(self):
         self.ZoomFactor += 1
-    def ZoomOut(self):
-        self.ZoomFactor += 1
+
     def Pause(self):
         if self.ispaused == False:
             pygame.mixer.music.pause()
@@ -442,12 +436,31 @@ class MyWindow(QMainWindow):
             pygame.mixer.music.unpause()
             self.ispaused = False
 
-    def Rewind(self):
-        if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
-            pygame.mixer.music.rewind()
-        elif self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
-            self.plotWidget1.setXRange(0,10,padding=0)
-            self.plotWidget4.setXRange(0,10,padding=0)
+    def Stop(self):
+        pygame.mixer.music.unload()
+        self.plotWidget1.clear()
+        self.plotWidget2.clear()
+        self.matplotlib_axes.clear()
+        self.plotWidget3.clear()
+        self.plotWidget4.clear()
+        self.matplotlib_axes2.clear()
+        self.plotWidget5.clear()
+        self.worker.end = True
+
+    def Reset(self):
+        sliders = [self.uniformSlider1,self.uniformSlider2,self.uniformSlider3,self.uniformSlider4,self.uniformSlider5,self.uniformSlider6,self.uniformSlider7,self.uniformSlider8,self.uniformSlider9,self.uniformSlider10,
+                   self.musicSlider1,self.musicSlider2,self.musicSlider3,self.musicSlider4,
+                   self.animalsSlider1,self.animalsSlider2,self.animalsSlider3,self.animalsSlider4,
+                   self.medicalSignalSlider1,self.medicalSignalSlider2,self.medicalSignalSlider3,self.medicalSignalSlider4]
+        for slider in sliders:
+            slider.setValue(5)
+
+    # def Rewind(self):
+    #     if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
+    #         pygame.mixer.music.rewind()
+    #     elif self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
+    #         self.plotWidget1.setXRange(0,10,padding=0)
+    #         self.plotWidget4.setXRange(0,10,padding=0)
 
     # def SetFrequencyRanges(self,filename):
     #     if self.ui.stackedWidget.currentIndex() == 1:
@@ -644,9 +657,9 @@ class MyWindow(QMainWindow):
 
             # Get the slider values
             uniform_sliders = [
-                self.unifromSlider1, self.unifromSlider2, self.unifromSlider3, self.unifromSlider4,
-                self.unifromSlider5, self.unifromSlider6, self.unifromSlider7, self.unifromSlider8,
-                self.unifromSlider9, self.unifromSlider10
+                self.uniformSlider1, self.uniformSlider2, self.uniformSlider3, self.uniformSlider4,
+                self.uniformSlider5, self.uniformSlider6, self.uniformSlider7, self.uniformSlider8,
+                self.uniformSlider9, self.uniformSlider10
             ]
 
             # Calculate the frequency range for each slider based on the loaded signal's range
