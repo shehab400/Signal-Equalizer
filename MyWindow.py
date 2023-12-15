@@ -67,7 +67,9 @@ class MyWindow(QMainWindow):
         self.worker_thread = QThread()
 
         self.timePos = 0
+        self.ZoomFactor=0
         self.ispaused = False
+        
 
         self.worker.progress.connect(self.UpdatePlots)
         self.worker.completed.connect(self.Complete)
@@ -428,6 +430,11 @@ class MyWindow(QMainWindow):
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
+    def ZoomIn(self):
+        if self.ZoomFactor > -9:
+            self.ZoomFactor -= 1
+    def ZoomOut(self):
+        self.ZoomFactor += 1
     def Pause(self):
         if self.ispaused == False:
             pygame.mixer.music.pause()
@@ -497,12 +504,12 @@ class MyWindow(QMainWindow):
             if self.ispaused == False:
                 xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
                 xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
-                self.plotWidget1.setXRange(xmin+0.1,xmax+0.1,padding=0)
-                self.plotWidget4.setXRange(xmin+0.1,xmax+0.1,padding=0)
+                self.plotWidget1.setXRange(xmin+0.1,xmax+0.1+self.ZoomFactor,padding=0)
+                self.plotWidget4.setXRange(xmin+0.1,xmax+0.1+self.ZoomFactor,padding=0)
         
         elif self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
-           self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
-           self.plotWidget4.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
+           self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10+self.ZoomFactor, padding=0)
+           self.plotWidget4.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10+self.ZoomFactor, padding=0)
         #self.timePos = pygame.mixer.get_pos()/1000
 
     def Complete(self):
