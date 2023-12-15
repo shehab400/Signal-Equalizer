@@ -383,14 +383,14 @@ class MyWindow(QMainWindow):
                 binary_data = file.read()
                 
                 # Convert binary data to a 1D array of integers
-                values = np.frombuffer(binary_data, dtype=np.int32)
+                values = np.frombuffer(binary_data, dtype=np.int16)
                 
                #fs is already known in medical signals
-                fs = 500.0  # Sample rate in Hz
+                fs = 250.0  # Sample rate in Hz
                 
                 # Calculate time values
                 time_values = np.arange(0, len(values) / fs, 1 / fs)
-            path1="C:/projects/DSP/Task 3/Signal-Equalizer/arrhythmia signals/Person_01/rec_1.dat"
+            path1="C:/projects/DSP/Task 3/Signal-Equalizer/arrhythmia signals/rec_1.dat"
             with open(path1,'rb') as file1:
                 data=file1.read()
             # normal_ecg=pd.read_csv(path1, usecols=["time", "amplitude"])
@@ -399,7 +399,7 @@ class MyWindow(QMainWindow):
             # print(uniform_fft)
             self.input = PlotLine()
             self.input.uniform_fft=uniform_fft
-            self.input.uniform_fftfreq = np.fft.fftfreq(len(uniform_fft), 1/2)
+            self.input.uniform_fftfreq = np.fft.fftfreq(len(uniform_fft), 1/500)
             self.input.name = path
             self.input.fs=fs
             self.input.time_axis=time_values
