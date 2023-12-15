@@ -262,8 +262,8 @@ class MyWindow(QMainWindow):
         layout6.addWidget(self.plotWidget6 )
         self.ui.widget_8.setLayout(layout6)
 
-        self.plotWidget1.setMouseEnabled(x=True,y=False)
-        self.plotWidget4.setMouseEnabled(x=True, y=False)
+        # self.plotWidget1.setMouseEnabled(x=True,y=False)
+        # self.plotWidget4.setMouseEnabled(x=True, y=False)
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
@@ -383,37 +383,41 @@ class MyWindow(QMainWindow):
                 binary_data = file.read()
                 
                 # Convert binary data to a 1D array of integers
-                values = np.frombuffer(binary_data, dtype=np.int64)
+                values = np.frombuffer(binary_data, dtype=np.int16)
                 
                #fs is already known in medical signals
-                fs = 500.0  # Sample rate in Hz
+                fs = 250.0  # Sample rate in Hz
                 
                 # Calculate time values
                 time_values = np.arange(0, len(values) / fs, 1 / fs)
-            path1="C:/projects/DSP/Task 3/Signal-Equalizer/arrhythmia signals/ECG.csv"
-            normal_ecg=pd.read_csv(path1, usecols=["time", "amplitude"])
-            uniform_fft = np.fft.fft(normal_ecg['amplitude'])
+            path1="C:/projects/DSP/Task 3/Signal-Equalizer/arrhythmia signals/rec_1.dat"
+            with open(path1,'rb') as file1:
+                data=file1.read()
+            # normal_ecg=pd.read_csv(path1, usecols=["time", "amplitude"])
+            normal_ecg=np.frombuffer(data, dtype=np.int32)
+            uniform_fft = np.fft.fft(normal_ecg)
+            # print(uniform_fft)
             self.input = PlotLine()
-            self.input.uniform_fftfreq = np.fft.fftfreq(len(uniform_fft), 1/2)
+            self.input.uniform_fft=uniform_fft
+            self.input.uniform_fftfreq = np.fft.fftfreq(len(uniform_fft), 1/500)
             self.input.name = path
             self.input.fs=fs
             self.input.time_axis=time_values
             self.input.sound_axis=values
-            signal = np.frombuffer(self.input.sound_axis, dtype=np.int64)
-            # Determine the number of rows (adjust as needed based on your data)
-            num_rows = len(signal) // 2
-            # Reshape the 1D array to a 2D array
-            signal_2d = signal.reshape((num_rows, -1))
-            # Extract the desired column
-            column_data = signal_2d[:, 1]
-            # Compute the FFT on the extracted column
-            self.input.fft = np.fft.fft(column_data)
+            # signal = np.frombuffer(self.input.sound_axis, dtype=np.int32)
+            # # Determine the number of rows (adjust as needed based on your data)
+            # num_rows = len(signal) // 2
+            # # Reshape the 1D array to a 2D array
+            # signal_2d = signal.reshape((num_rows, -1))
+            # # Extract the desired column
+            # column_data = signal_2d[:, 1]
+            # # Compute the FFT on the extracted column
+            self.input.fft = np.fft.fft(values)
             # Calculate the frequency axis
             fs = 500.0  # fs for any medical signal from physionet 
-            self.input.FrequencySamples = np.fft.fftfreq(len(column_data), 1/fs)
+            self.input.FrequencySamples = np.fft.fftfreq(len(values), 1/fs)
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
-            self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.plotWidget1.setXRange(0,10,padding=0)
             # self.update_frequency_components()
@@ -703,6 +707,7 @@ class MyWindow(QMainWindow):
         original_spectrum = self.input.fft
         modified_spectrum = original_spectrum.copy()  # Make a copy to avoid modifying the original
         positive_freq_indices = np.where(self.input.FrequencySamples > 0)
+        positive_freq_indices2 = np.where(self.input.uniform_fftfreq > 0)
 
         # Get the slider values
         medical_sliders = [
@@ -710,26 +715,27 @@ class MyWindow(QMainWindow):
         ]
 
         # Calculate the arythmia frequencies
-        arythmia_freq = set(self.input.FrequencySamples) - set(self.input.uniform_fftfreq)
-        
+        arythmia_freq = set(self.input.FrequencySamples[positive_freq_indices]) - set(self.input.uniform_fftfreq[positive_freq_indices2])
+        print(arythmia_freq)
+        indices = np.where((self.input.FrequencySamples[positive_freq_indices] >= 30) & (self.input.FrequencySamples[positive_freq_indices] <= 180))
         # Find the indices of arythmia frequencies in the frequency array
-        arythmia_indices = np.where(np.isin(self.input.FrequencySamples, list(arythmia_freq)))
+        # arythmia_indices = np.where(np.isin(self.input.FrequencySamples, list(arythmia_freq)))
 
         for slider in medical_sliders:
             amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
             amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-            modified_spectrum[arythmia_indices] *= amplitude
+            modified_spectrum[indices] *= amplitude
 
         self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum,positive_freq_indices)
         # Compute the inverse Fourier Transform to get the modified signal
         modified_signal = np.fft.ifft(modified_spectrum).real
 
-        # Print the lengths for debugging
-        print(len(modified_signal))
-        print(len(self.input.time_axis))
+        # # Print the lengths for debugging
+        # print(len(modified_signal))
+        # print(len(self.input.time_axis))
 
         # Update the plot with the modified signal in the time domain
-        # self.plotWidget4.clear()
-        # self.input.data_line = self.plotWidget4.plot(
-        #     self.input.time_axis, modified_signal, name=self.input.name
-        # )
+        self.plotWidget4.clear()
+        self.input.data_line = self.plotWidget4.plot(
+            self.input.time_axis, modified_signal, name=self.input.name
+        )
