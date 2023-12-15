@@ -60,6 +60,8 @@ class MyWindow(QMainWindow):
         self.ui.uniformWave.setChecked(True)
         self.ui.actionLoad.clicked.connect(self.Load)
         self.ui.playPauseSound.clicked.connect(self.Pause)
+        self.ui.zoomIn.clicked.connect(self.ZoomIn)
+        self.ui.zoomOut.clicked.connect(self.ZoomOut)
         
 
         pygame.mixer.init()
@@ -67,6 +69,7 @@ class MyWindow(QMainWindow):
         self.worker_thread = QThread()
 
         self.timePos = 0
+        self.ZoomFactor = 0
         self.ispaused = False
 
         self.worker.progress.connect(self.UpdatePlots)
@@ -424,6 +427,13 @@ class MyWindow(QMainWindow):
             self.arrhythmiaRemoval()
             self.work_requested.emit(math.ceil(self.input.time_axis.max()))
 
+    def ZoomIn(self):
+        if self.ZoomFactor > -9:
+            self.ZoomFactor -= 1
+
+    def ZoomOut(self):
+        self.ZoomFactor += 1
+
     def Pause(self):
         if self.ispaused == False:
             pygame.mixer.music.pause()
@@ -452,15 +462,15 @@ class MyWindow(QMainWindow):
     #             plot.fs=fs
     #             plot.SetData(data,fs)
 
-    def UpdateComposed(self):
-        data, fs = a2n.audio_from_file("ComposedSound.mp3")
+    # def UpdateComposed(self):
+    #     data, fs = a2n.audio_from_file("ComposedSound.mp3")
         
-        self.input = PlotLine()
-        self.input.name = "ComposedSound"
-        self.input.fs=fs
-        self.input.SetData(data,fs)
-        self.plotWidget1.clear()
-        self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+    #     self.input = PlotLine()
+    #     self.input.name = "ComposedSound"
+    #     self.input.fs=fs
+    #     self.input.SetData(data,fs)
+    #     self.plotWidget1.clear()
+    #     self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
 
     # def KeyboardAdjustor(self):
     #     if self.sounds != None:
@@ -493,12 +503,12 @@ class MyWindow(QMainWindow):
             if self.ispaused == False:
                 xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
                 xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
-                self.plotWidget1.setXRange(xmin+0.1,xmax+0.1,padding=0)
-                self.plotWidget4.setXRange(xmin+0.1,xmax+0.1,padding=0)
+                self.plotWidget1.setXRange(xmin+0.1,xmax+0.1+self.ZoomFactor,padding=0)
+                self.plotWidget4.setXRange(xmin+0.1,xmax+0.1+self.ZoomFactor,padding=0)
         
         elif self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
-           self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
-           self.plotWidget4.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10, padding=0)
+           self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10+self.ZoomFactor, padding=0)
+           self.plotWidget4.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10+self.ZoomFactor, padding=0)
         #self.timePos = pygame.mixer.get_pos()/1000
 
     def Complete(self):
@@ -566,6 +576,7 @@ class MyWindow(QMainWindow):
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
             self.input.data_line = self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
+            self.plotWidget4.setLimits(xMin = 0,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
             self.UpdateAudio(self.input.time_axis,modified_signal,self.input.fs)
             self.plotWidget3.setLabel('left', 'Amplitude')
@@ -606,9 +617,8 @@ class MyWindow(QMainWindow):
 
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
-            self.input.data_line = self.plotWidget4.plot(
-                self.input.time_axis, modified_signal, name=self.input.name
-            )
+            self.input.data_line = self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
+            self.plotWidget4.setLimits(xMin = 0,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
             self.UpdateAudio(self.input.time_axis,modified_signal,self.input.fs)
             self.plotWidget3.setLabel('left', 'Amplitude')
@@ -686,9 +696,8 @@ class MyWindow(QMainWindow):
 
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
-            self.input.data_line = self.plotWidget4.plot(
-                self.input.time_axis, modified_signal, name=self.input.name
-            )
+            self.input.data_line = self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
+            self.plotWidget4.setLimits(xMin = 0,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
             # self.plotWidget4.setXRange(0, self.input.time_axis.max())
             self.plotWidget3.setLabel('left', 'Amplitude')
