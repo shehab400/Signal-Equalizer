@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import pandas as pd
 
+windowSize = 1000
 
 class Worker(QObject):
     progress = Signal(int)
@@ -67,7 +68,11 @@ class MyWindow(QMainWindow):
         self.ui.zoomOut.clicked.connect(self.ZoomOut)
         self.ui.stop.clicked.connect(self.Stop)
         self.ui.reset.clicked.connect(self.Reset)
-        
+        self.ui.Rect.clicked.connect(self.Rect)
+        self.ui.Hann.clicked.connect(self.Hann)
+        self.ui.Hamm.clicked.connect(self.Hamm)
+        self.ui.Gauss.clicked.connect(self.Gauss)
+ 
 
         pygame.mixer.init()
         self.worker = Worker()
@@ -263,6 +268,28 @@ class MyWindow(QMainWindow):
 
         # self.plotWidget1.setMouseEnabled(x=True,y=False)
         # self.plotWidget4.setMouseEnabled(x=True, y=False)
+
+    def Rect(self):
+        window = np.ones(windowSize)
+        x = np.arange(windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
+        
+    def Hann(self):
+        window = np.hanning(windowSize)
+        x = np.arange(self.windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
+
+    def Hamm(self):
+        window = np.hamming(windowSize)
+        x = np.arange(windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
+
+    def Gauss(self):
+        window = np.exp(-(0.5 * ((windowSize - 1) / 2 - np.arange(windowSize)
+                                ) / (gaussian_std * (windowSize -1)/2))**2)
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
@@ -612,7 +639,7 @@ class MyWindow(QMainWindow):
             signal_min_freq = frequency_axis[positive_freq_indices].min()
             signal_max_freq = frequency_axis[positive_freq_indices].max()
             Sliders = [self.animalsSlider1,self.animalsSlider2,self.animalsSlider3,self.animalsSlider4]
-            frequency_ranges = [(200,2500), (2500,20000) , (0,0) , (0 ,0)] #lion, elephant cat dog
+            frequency_ranges = [(10,700), (700,1600) , (1500,2500) , (2500 ,7000)] #lion, elephant cat dog
             # frequency_ranges = [(10,1400),(1400,2500),(2500,4000),(4000,11000)] #lion, elephant cat dog
             modified_spectrum = np.copy(original_spectrum)
 
@@ -625,7 +652,7 @@ class MyWindow(QMainWindow):
                 # Adjust the magnitude in the frequency domain
                 modified_spectrum[indices] *= amplification_factor
             
-            frequency_ranges = [(-2500,-200),(-20000,-2500),(0,0) , (0,0)] #lion, elephant cat dog           
+            frequency_ranges = [(-700,-10),(-1600,-700),(-2500,-1500),(-7000,-2500)] #lion, elephant cat dog           
             # frequency_ranges = [(-1400,-10),(-2500,-1400),(-4000,-2500) , (-11000,-4000)] #lion, elephant cat dog           
             for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
                 amplification_factor = slider.value() * 0.2
