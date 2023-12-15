@@ -602,7 +602,7 @@ class MyWindow(QMainWindow):
             signal_min_freq = frequency_axis[positive_freq_indices].min()
             signal_max_freq = frequency_axis[positive_freq_indices].max()
             Sliders = [self.animalsSlider1,self.animalsSlider2,self.animalsSlider3,self.animalsSlider4]
-            frequency_ranges = [(200,2500), (2500,20000) , (0,0) , (0 ,0)] #lion, elephant cat dog
+            frequency_ranges = [(10,700), (700,1600) , (1500,2500) , (2500 ,7000)] #lion, elephant cat dog
             # frequency_ranges = [(10,1400),(1400,2500),(2500,4000),(4000,11000)] #lion, elephant cat dog
             modified_spectrum = np.copy(original_spectrum)
 
@@ -615,7 +615,7 @@ class MyWindow(QMainWindow):
                 # Adjust the magnitude in the frequency domain
                 modified_spectrum[indices] *= amplification_factor
             
-            frequency_ranges = [(-2500,-200),(-20000,-2500),(0,0) , (0,0)] #lion, elephant cat dog           
+            frequency_ranges = [(-700,-10),(-1600,-700),(-2500,-1500),(-7000,-2500)] #lion, elephant cat dog           
             # frequency_ranges = [(-1400,-10),(-2500,-1400),(-4000,-2500) , (-11000,-4000)] #lion, elephant cat dog           
             for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
                 amplification_factor = slider.value() * 0.2
