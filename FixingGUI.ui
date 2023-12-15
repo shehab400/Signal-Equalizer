@@ -939,37 +939,30 @@
                 <item row="0" column="0">
                  <layout class="QVBoxLayout" name="verticalLayout_5">
                   <item>
-                   <widget class="QPushButton" name="pushButton">
+                   <widget class="QPushButton" name="Rect">
                     <property name="text">
                      <string>Rectangle</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pushButton_2">
+                   <widget class="QPushButton" name="Hamm">
                     <property name="text">
                      <string>Hamm</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pushButton_3">
+                   <widget class="QPushButton" name="Hann">
                     <property name="text">
                      <string>Hann</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pushButton_4">
+                   <widget class="QPushButton" name="Gauss">
                     <property name="text">
                      <string>Gauss</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="pushButton_5">
-                    <property name="text">
-                     <string>Apply</string>
                     </property>
                    </widget>
                   </item>
