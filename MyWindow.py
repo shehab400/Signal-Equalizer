@@ -27,6 +27,10 @@ from io import BytesIO
 import pandas as pd
 
 windowSize = 1000
+gaussian_std = 5
+x_axis = None
+window = None
+whichWindowing = None
 
 class Worker(QObject):
     progress = Signal(int)
@@ -68,10 +72,10 @@ class MyWindow(QMainWindow):
         self.ui.zoomOut.clicked.connect(self.ZoomOut)
         self.ui.stop.clicked.connect(self.Stop)
         self.ui.reset.clicked.connect(self.Reset)
-        self.ui.Rect.clicked.connect(self.Rect)
-        self.ui.Hann.clicked.connect(self.Hann)
-        self.ui.Hamm.clicked.connect(self.Hamm)
-        self.ui.Gauss.clicked.connect(self.Gauss)
+        self.ui.Rect.clicked.connect(self.rectFunc)
+        self.ui.Hann.clicked.connect(self.hannFunc)
+        self.ui.Hamm.clicked.connect(self.hammFunc)
+        self.ui.Gauss.clicked.connect(self.gaussFunc)
  
 
         pygame.mixer.init()
@@ -269,27 +273,34 @@ class MyWindow(QMainWindow):
         # self.plotWidget1.setMouseEnabled(x=True,y=False)
         # self.plotWidget4.setMouseEnabled(x=True, y=False)
 
-    def Rect(self):
-        window = np.ones(windowSize)
+    def rectFunc(self):
+            whichWindowing = 1
+            window = np.ones(windowSize)
+            x_axis = np.arange(windowSize)
+            self.plotWidget6.clear()
+            self.plotWidget6.plot( x_axis, window, title='Rectangular Smoothing Window')
+        
+    def hannFunc(self):
+        whichWindowing = 2 
+        window = np.hanning(windowSize)
         x = np.arange(windowSize)
         self.plotWidget6.clear()
         self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
-        
-    def Hann(self):
-        window = np.hanning(windowSize)
-        x = np.arange(self.windowSize)
-        self.plotWidget6.clear()
-        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
 
-    def Hamm(self):
+    def hammFunc(self):
+        whichWindowing = 3 
         window = np.hamming(windowSize)
         x = np.arange(windowSize)
         self.plotWidget6.clear()
         self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
 
-    def Gauss(self):
+    def gaussFunc(self):
+        whichWindowing = 4
         window = np.exp(-(0.5 * ((windowSize - 1) / 2 - np.arange(windowSize)
                                 ) / (gaussian_std * (windowSize -1)/2))**2)
+        x = np.arange(windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
@@ -754,13 +765,52 @@ class MyWindow(QMainWindow):
             self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
         
     def plotFrequencyDomain(self,frequency_axis,modified_spectrum,positive_freq_indices):
-        self.plotWidget3.clear()
-        self.plotWidget3.plot(
-            frequency_axis[positive_freq_indices],
-            np.abs(modified_spectrum[positive_freq_indices]),
-            pen='r',
-            name='Modified Spectrum'
-        )
+        if whichWindowing == None:
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
+        if whichWindowing == 1:
+            modified_spectrum[positive_freq_indices] *= np.ones(len(positive_freq_indices))
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
+        if whichWindowing == 2:
+            # Apply Hanning windowing using np.hann
+            modified_spectrum[positive_freq_indices] *= np.hanning(len(positive_freq_indices))
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
+        if whichWindowing == 3:
+            modified_spectrum[positive_freq_indices] *= np.hamming(len(positive_freq_indices))
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
+        if whichWindowing == 4:
+            modified_spectrum[positive_freq_indices] = np.exp(-(0.5 * ((len(positive_freq_indices) - 1) / 2 - np.arange(len(positive_freq_indices))
+                                ) / (gaussian_std * (len(positive_freq_indices) -1)/2))**2)
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
 
     def arrhythmiaRemoval(self):
         original_spectrum = self.input.fft
