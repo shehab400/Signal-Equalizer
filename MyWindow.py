@@ -1,5 +1,6 @@
-from PyQt5 import QtWidgets, uic, QtCore,QtGui
+from PyQt5 import QtWidgets, uic, QtCore,QtGui,QtMultimedia
 from PyQt5.QtCore import QThread,QObject,pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget, plot
 from PyQt5.QtWidgets import QApplication,QMainWindow,QVBoxLayout,QPushButton,QWidget,QErrorMessage,QMessageBox,QDialog,QScrollBar,QSlider
@@ -25,8 +26,12 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib.pyplot as plt
 from io import BytesIO
 import pandas as pd
+from InputDialog import *
 
 windowSize = 1000
+gaussian_std = 5
+x_axis = None
+window = None
 
 class Worker(QObject):
     progress = Signal(int)
@@ -44,6 +49,7 @@ class Worker(QObject):
 
 class MyWindow(QMainWindow):
     work_requested = Signal(int)
+    whichWindowing = None
 
     def __init__(self):
         super(MyWindow, self).__init__()
@@ -68,13 +74,14 @@ class MyWindow(QMainWindow):
         self.ui.zoomOut.clicked.connect(self.ZoomOut)
         self.ui.stop.clicked.connect(self.Stop)
         self.ui.reset.clicked.connect(self.Reset)
-        self.ui.Rect.clicked.connect(self.Rect)
-        self.ui.Hann.clicked.connect(self.Hann)
-        self.ui.Hamm.clicked.connect(self.Hamm)
-        self.ui.Gauss.clicked.connect(self.Gauss)
+        self.ui.Rect.clicked.connect(self.rectFunc)
+        self.ui.Hann.clicked.connect(self.hannFunc)
+        self.ui.Hamm.clicked.connect(self.hammFunc)
+        self.ui.Gauss.clicked.connect(self.gaussFunc)
+        self.ui.cineSpeed.clicked.connect(self.SpeedControl)
  
 
-        pygame.mixer.init()
+        self.MediaPlayer = QMediaPlayer()
         self.worker = Worker()
         self.worker_thread = QThread()
 
@@ -266,30 +273,37 @@ class MyWindow(QMainWindow):
         layout6.addWidget(self.plotWidget6 )
         self.ui.widget_8.setLayout(layout6)
 
-        # self.plotWidget1.setMouseEnabled(x=True,y=False)
-        # self.plotWidget4.setMouseEnabled(x=True, y=False)
+        self.plotWidget1.setMouseEnabled(x=True, y=False)
+        self.plotWidget4.setMouseEnabled(x=True, y=False)
 
-    def Rect(self):
+    def rectFunc(self):
+        self.whichWindowing = 1
         window = np.ones(windowSize)
+        x_axis = np.arange(windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x_axis, window, title='Rectangular Smoothing Window')
+        
+    def hannFunc(self):
+        self.whichWindowing = 2 
+        window = np.hanning(windowSize)
         x = np.arange(windowSize)
         self.plotWidget6.clear()
         self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
-        
-    def Hann(self):
-        window = np.hanning(windowSize)
-        x = np.arange(self.windowSize)
-        self.plotWidget6.clear()
-        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
 
-    def Hamm(self):
+    def hammFunc(self):
+        self.whichWindowing = 3 
         window = np.hamming(windowSize)
         x = np.arange(windowSize)
         self.plotWidget6.clear()
         self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
 
-    def Gauss(self):
+    def gaussFunc(self):
+        self.whichWindowing = 4
         window = np.exp(-(0.5 * ((windowSize - 1) / 2 - np.arange(windowSize)
                                 ) / (gaussian_std * (windowSize -1)/2))**2)
+        x = np.arange(windowSize)
+        self.plotWidget6.clear()
+        self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
         
 ## Change Qpushbutton Checkable status when stackedWidget index changed  
     def stackedWidget_currentChanged (self, index):
@@ -336,21 +350,22 @@ class MyWindow(QMainWindow):
         self.ui.stackedWidget_2.setCurrentIndex(3)
 
     def UpdateAudio(self,time_axis,sound_axis,fs):
+        pos = self.MediaPlayer.position()
+        self.MediaPlayer.stop()
+        self.MediaPlayer = QMediaPlayer()
         data = np.array(list(zip(time_axis,sound_axis)))
         sf.write("test.wav",data,fs)
         sound = AudioSegment.from_wav("test.wav")
         os.remove('test.wav')
         sound = sound.set_channels(1)
-        pygame.mixer.music.unload()
         if os.path.exists('test.mp3'):
             os.remove("test.mp3")
         sound.export("test.mp3", format="mp3")
-        pos = pygame.mixer.music.get_pos()
         self.timePos += pos
-        pygame.mixer.music.load("test.mp3")
-        pygame.mixer.music.play()
-        pygame.mixer.music.rewind() # mp3 files need a rewind first
-        pygame.mixer.music.set_pos(self.timePos/1000)
+        url = QtCore.QUrl.fromLocalFile("test.mp3")
+        self.MediaPlayer.setMedia(QtMultimedia.QMediaContent(url))
+        self.MediaPlayer.setPosition(pos)
+        self.MediaPlayer.play()
 
     def Load(self):
         if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
@@ -371,13 +386,18 @@ class MyWindow(QMainWindow):
             self.update_frequency_components()
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,2)
             self.timePos = 0
-            pygame.mixer.music.unload()
-            pygame.mixer.music.load(path)
-            pygame.mixer.music.play()
+            # pygame.mixer.music.unload()
+            # pygame.mixer.music.load(path)
+            # pygame.mixer.music.play()
+            
+            url = QtCore.QUrl.fromLocalFile(path)
+            self.MediaPlayer.setMedia(QtMultimedia.QMediaContent(url))
+            self.MediaPlayer.play()
+            #self.MediaPlayer.stateChanged.connect(self.Completed)
 
             self.plotWidget1.setXRange(0,10,padding=0)
 
-            self.work_requested.emit(math.ceil(self.input.time_axis.max()))
+            self.work_requested.emit(300)
 
         elif self.ui.stackedWidget.currentIndex() == 0:
             #Load filee, Plot, Convert Every track to frequency, get frequency ranges, update plot
@@ -404,6 +424,17 @@ class MyWindow(QMainWindow):
         elif self.ui.stackedWidget.currentIndex() == 3: 
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
+            self.input = PlotLine()
+            if path=="C:/projects/DSP/Task 3/Signal-Equalizer/used arrhythemia signals/rec_1.dat":
+                self.input.arrhythmiaType=1
+            elif path=="C:/projects/DSP/Task 3/Signal-Equalizer/used arrhythemia signals/rec_3.dat":
+                self.input.arrhythmiaType=2
+            elif path=="C:/projects/DSP/Task 3/Signal-Equalizer/used arrhythemia signals/rec_2.dat":
+                self.input.arrhythmiaType=3
+            elif path=="C:/projects/DSP/Task 3/Signal-Equalizer/used arrhythemia signals/rec_4.dat":
+                self.input.arrhythmiaType=4
+                
+            print(path)
             with open(path, 'rb') as file:
                 # Read binary data
                 binary_data = file.read()
@@ -427,7 +458,6 @@ class MyWindow(QMainWindow):
             # normal_ecg=data1[:10000]
             uniform_fft = np.fft.fft(normal_ecg)
             # print(uniform_fft)
-            self.input = PlotLine()
             self.input.uniform_fft=uniform_fft
             self.input.uniform_fftfreq = np.fft.fftfreq(len(uniform_fft), 1/500)
             self.input.name = path
@@ -457,22 +487,15 @@ class MyWindow(QMainWindow):
 
     def Pause(self):
         if self.ispaused == False:
-            pygame.mixer.music.pause()
+            self.MediaPlayer.pause()
             self.ispaused = True
         elif self.ispaused == True:
-            pygame.mixer.music.unpause()
+            self.MediaPlayer.play()
             self.ispaused = False
 
     def Stop(self):
-        pygame.mixer.music.unload()
-        self.plotWidget1.clear()
-        self.plotWidget2.clear()
-        self.matplotlib_axes.clear()
-        self.plotWidget3.clear()
-        self.plotWidget4.clear()
-        self.matplotlib_axes2.clear()
-        self.plotWidget5.clear()
-        self.worker.end = True
+        self.MediaPlayer.stop()
+        self.ispaused = True
 
     def Reset(self):
         sliders = [self.uniformSlider1,self.uniformSlider2,self.uniformSlider3,self.uniformSlider4,self.uniformSlider5,self.uniformSlider6,self.uniformSlider7,self.uniformSlider8,self.uniformSlider9,self.uniformSlider10,
@@ -481,6 +504,15 @@ class MyWindow(QMainWindow):
                    self.medicalSignalSlider1,self.medicalSignalSlider2,self.medicalSignalSlider3,self.medicalSignalSlider4]
         for slider in sliders:
             slider.setValue(5)
+
+    def SpeedControl(self):
+        dialog = InputDialog(self)
+        result = dialog.exec_()  # This will block until the user closes the dialog
+
+        if result == QtWidgets.QDialog.Accepted:
+            user_input = dialog.input_text.text()
+            # Do something with the user input, e.g., display it in a message box
+            self.MediaPlayer.setPlaybackRate(float(user_input))
 
     # def Rewind(self):
     #     if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
@@ -539,21 +571,24 @@ class MyWindow(QMainWindow):
         # random_rgb = self.random_color()
         # self.input.pen = pg.mkPen(color = random_rgb)
         # self.input.data_line.setPen(self.input.pen)
-        if self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
-            if self.ispaused == False:
-                xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
-                xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
-                self.plotWidget1.setXRange(xmin+0.1,xmax+0.1+self.ZoomFactor,padding=0)
-                self.plotWidget4.setXRange(xmin+0.1,xmax+0.1+self.ZoomFactor,padding=0)
-        
-        elif self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
-           self.plotWidget1.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10+self.ZoomFactor, padding=0)
-           self.plotWidget4.setXRange((self.timePos+pygame.mixer.music.get_pos())/1000, ((self.timePos+pygame.mixer.music.get_pos())/1000)+10+self.ZoomFactor, padding=0)
-        #self.timePos = pygame.mixer.get_pos()/1000
+        if self.ispaused == False:
+            if self.ui.stackedWidget.currentIndex() == 0 or self.ui.stackedWidget.currentIndex() == 3:
+                    xmin=self.plotWidget1.getViewBox().viewRange()[0][0]
+                    xmax=self.plotWidget1.getViewBox().viewRange()[0][1]
+                    self.plotWidget1.setXRange(xmin+0.1,xmax+0.1+self.ZoomFactor,padding=0)
+                    self.plotWidget4.setXRange(xmin+0.1,xmax+0.1+self.ZoomFactor,padding=0)
+            
+            elif self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
+                self.plotWidget1.setXRange((self.MediaPlayer.position()/1000), (self.MediaPlayer.position()/1000)+10+self.ZoomFactor, padding=0)
+                self.plotWidget4.setXRange((self.MediaPlayer.position()/1000), (self.MediaPlayer.position()/1000)+10+self.ZoomFactor, padding=0)
+            #self.timePos = pygame.mixer.get_pos()/1000
 
-    def Complete(self):
+    def Completed(self):
         self.plotWidget1.setXRange(0,self.input.time_axis.max())
         self.plotWidget4.setXRange(0,self.input.time_axis.max())
+
+    def Complete(self):
+        pass
         
     def generate_spectrogram(self, time_axis, sound_axis, fs,flag):
         if flag==1:
@@ -744,13 +779,52 @@ class MyWindow(QMainWindow):
             self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
         
     def plotFrequencyDomain(self,frequency_axis,modified_spectrum,positive_freq_indices):
-        self.plotWidget3.clear()
-        self.plotWidget3.plot(
-            frequency_axis[positive_freq_indices],
-            np.abs(modified_spectrum[positive_freq_indices]),
-            pen='r',
-            name='Modified Spectrum'
-        )
+        if self.whichWindowing == None:
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
+        if self.whichWindowing == 1:
+            modified_spectrum[positive_freq_indices] *= np.ones(len(positive_freq_indices))
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
+        if self.whichWindowing == 2:
+            # Apply Hanning windowing using np.hann
+            modified_spectrum[positive_freq_indices] *= np.hanning(len(positive_freq_indices))
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
+        if self.whichWindowing == 3:
+            modified_spectrum[positive_freq_indices] *= np.hamming(len(positive_freq_indices))
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
+        if self.whichWindowing == 4:
+            modified_spectrum[positive_freq_indices] = np.exp(-(0.5 * ((len(positive_freq_indices) - 1) / 2 - np.arange(len(positive_freq_indices))
+                                ) / (gaussian_std * (len(positive_freq_indices) -1)/2))**2)
+            self.plotWidget3.clear()
+            self.plotWidget3.plot(
+                frequency_axis[positive_freq_indices],
+                np.abs(modified_spectrum[positive_freq_indices]),
+                pen='r',
+                name='Modified Spectrum'
+            )
 
     def arrhythmiaRemoval(self):
         original_spectrum = self.input.fft
@@ -760,12 +834,12 @@ class MyWindow(QMainWindow):
 
         # Get the slider values
         medical_sliders = [
-            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3, self.medicalSignalSlider4
+            self.medicalSignalSlider1, self.medicalSignalSlider2, self.medicalSignalSlider3
         ]
 
         # Calculate the arrhythmia frequencies
         arythmia_freq = set(self.input.FrequencySamples[positive_freq_indices]) - set(self.input.uniform_fftfreq[positive_freq_indices2])
-        print(arythmia_freq)
+        # print(arythmia_freq)
         arythmia_freq = np.array(list(arythmia_freq)) 
         # print(len(self.input.FrequencySamples[positive_freq_indices]))
         # print(len(original_spectrum[positive_freq_indices]))
@@ -789,16 +863,54 @@ class MyWindow(QMainWindow):
           # Find the indices of arrhythmia frequencies in the frequency array
         # indices = np.where(np.isin(self.input.FrequencySamples[positive_freq_indices], list(arythmia_freq)))
         # indices = np.where((self.input.FrequencySamples[positive_freq_indices] >= 30) & (self.input.FrequencySamples[positive_freq_indices] <= 180))
-        
-
-        frequency_Ranges=[(0,80),(90,150),(160,200) , (210,300)]
-        for slider , (freq_min, freq_max) in  zip (medical_sliders,frequency_Ranges):
-            amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
-            if slider.value()!=5:
+        print(self.input.arrhythmiaType)
+        if self.input.arrhythmiaType==1:
+            freq_min=0
+            freq_max=69
+            amplification_factor = self.medicalSignalSlider1.value() / 10.0  # Normalize the slider value to [0, 1]
+            if self.medicalSignalSlider1.value()!=5:
                 amplitude = amplification_factor * 2  # Square the amplitude for increased effect
                 # modified_spectrum[top_indices] *= amplitude
                 indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
                 modified_spectrum[indices] *= amplitude
+                
+            
+        if self.input.arrhythmiaType==2:
+            freq_min=70
+            freq_max=140
+            amplification_factor = self.medicalSignalSlider2.value() / 10.0  # Normalize the slider value to [0, 1]
+            if self.medicalSignalSlider2.value()!=5:
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                # modified_spectrum[top_indices] *= amplitude
+                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+                modified_spectrum[indices] *= amplitude
+        if self.input.arrhythmiaType==3:
+            freq_min=140
+            freq_max=200
+            amplification_factor = self.medicalSignalSlider3.value() / 10.0  # Normalize the slider value to [0, 1]
+            if self.medicalSignalSlider3.value()!=5:
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                # modified_spectrum[top_indices] *= amplitude
+                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+                modified_spectrum[indices] *= amplitude
+        if self.input.arrhythmiaType==4:
+            freq_min=200
+            freq_max=260
+            amplification_factor = self.medicalSignalSlider4.value() / 10.0  # Normalize the slider value to [0, 1]
+            if self.medicalSignalSlider4.value()!=5:
+                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+                # modified_spectrum[top_indices] *= amplitude
+                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+                modified_spectrum[indices] *= amplitude
+                    
+        # frequency_Ranges=[(0,80),(90,150),(160,260)]
+        # for slider , (freq_min, freq_max) in  zip (medical_sliders,frequency_Ranges):
+        #     amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+        #     if slider.value()!=5:
+        #         amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+        #         # modified_spectrum[top_indices] *= amplitude
+        #         indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+        #         modified_spectrum[indices] *= amplitude
 
         self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum, positive_freq_indices)
         # Compute the inverse Fourier Transform to get the modified signal
@@ -809,4 +921,5 @@ class MyWindow(QMainWindow):
         self.input.data_line = self.plotWidget4.plot(
             self.input.time_axis, modified_signal, name=self.input.name
         )
+        self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
 
