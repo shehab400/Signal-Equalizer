@@ -299,8 +299,7 @@ class MyWindow(QMainWindow):
 
     def gaussFunc(self):
         self.whichWindowing = 4
-        window = np.exp(-(0.5 * ((windowSize - 1) / 2 - np.arange(windowSize)
-                                ) / (gaussian_std * (windowSize -1)/2))**2)
+        window = np.exp(-(0.5 * ((windowSize - 1) / 2 - np.arange(windowSize)) / (gaussian_std * (windowSize -1)/2))**2)
         x = np.arange(windowSize)
         self.plotWidget6.clear()
         self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
@@ -420,7 +419,7 @@ class MyWindow(QMainWindow):
 
             self.plotWidget1.setXRange(0,10,padding=0)
 
-            self.work_requested.emit(math.ceil(self.input.time_axis.max()))
+            self.work_requested.emit(300)
         elif self.ui.stackedWidget.currentIndex() == 3: 
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
@@ -475,7 +474,7 @@ class MyWindow(QMainWindow):
             self.plotWidget1.setXRange(0,10,padding=0)
             # self.update_frequency_components()
             self.arrhythmiaRemoval()
-            self.work_requested.emit(math.ceil(self.input.time_axis.max()))
+            self.work_requested.emit(300)
 
     
     def ZoomIn(self):
@@ -596,7 +595,7 @@ class MyWindow(QMainWindow):
             # Draw the Matplotlib figure
             self.matplotlib_widget.draw()
             # Clear the existing content in the Matplotlib figure
-            self.matplotlib_axes.clear()
+            self.matplotlib_figure.canvas.clf()
             # Plot the spectrogram in the Matplotlib figure
             self.matplotlib_axes.pcolormesh(times, frequencies, 10 * np.log10(Pxx), shading='auto', cmap='viridis')
             self.matplotlib_axes.set_xlabel('Time (s)')
