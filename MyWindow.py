@@ -29,6 +29,7 @@ import pandas as pd
 from InputDialog import *
 
 windowSize = 1000
+epsilon = 1e-10
 gaussian_std = 5
 x_axis = None
 window = None
@@ -595,7 +596,7 @@ class MyWindow(QMainWindow):
             # Draw the Matplotlib figure
             self.matplotlib_widget.draw()
             # Clear the existing content in the Matplotlib figure
-            self.matplotlib_figure.canvas.clf()
+            # self.matplotlib_figure.canvas.clf()
             # Plot the spectrogram in the Matplotlib figure
             self.matplotlib_axes.pcolormesh(times, frequencies, 10 * np.log10(Pxx), shading='auto', cmap='viridis')
             self.matplotlib_axes.set_xlabel('Time (s)')
@@ -815,8 +816,7 @@ class MyWindow(QMainWindow):
                 name='Modified Spectrum'
             )
         if self.whichWindowing == 4:
-            modified_spectrum[positive_freq_indices] = np.exp(-(0.5 * ((len(positive_freq_indices) - 1) / 2 - np.arange(len(positive_freq_indices))
-                                ) / (gaussian_std * (len(positive_freq_indices) -1)/2))**2)
+            modified_spectrum[positive_freq_indices] *= np.exp(-(0.5 * ((len(positive_freq_indices) - 1) / 2 - np.arange(len(positive_freq_indices))) / (gaussian_std * (len(positive_freq_indices) -1)/2 ))**2)
             self.plotWidget3.clear()
             self.plotWidget3.plot(
                 frequency_axis[positive_freq_indices],
