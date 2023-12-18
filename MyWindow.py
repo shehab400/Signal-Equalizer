@@ -754,10 +754,12 @@ class MyWindow(QMainWindow):
                 amplitude = amplification_factor * 2  # Square the amplitude for increased effect
 
                 # Find the indices of the frequency range
-                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-
+                  # Find the indices of the frequency range
+                pos_indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+                neg_indices = np.where((frequency_axis >= -freq_max) & (frequency_axis <= -freq_min))
                 # Adjust the magnitude in the frequency domain
-                modified_spectrum[indices] *= amplitude
+                modified_spectrum[pos_indices] *= amplification_factor
+                modified_spectrum[neg_indices] *= amplification_factor
 
             # Update the plot with the original signal and the modified signal in the frequency domain
             # self.plotWidget2.clear()
