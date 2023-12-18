@@ -27,8 +27,10 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import pandas as pd
 from InputDialog import *
+from scipy.signal import spectrogram 
 
 windowSize = 1000
+ep=1e-10
 gaussian_std = 5
 x_axis = None
 window = None
@@ -248,7 +250,7 @@ class MyWindow(QMainWindow):
         self.matplotlib_axes2.set_axis_off()  # Turn off axes for spectrogram
 
         # Create Matplotlib widget to embed in PyQT layout
-        self.matplotlib_widget2 = FigureCanvasQTAgg(self.matplotlib_figure)
+        self.matplotlib_widget2 = FigureCanvasQTAgg(self.matplotlib_figure2)
         self.matplotlib_axes2.set_facecolor('black')
         self.matplotlib_figure2.patch.set_facecolor('black')
 
@@ -384,7 +386,7 @@ class MyWindow(QMainWindow):
             self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.update_frequency_components()
-            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,2)
+            # self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,2)
             self.timePos = 0
             # pygame.mixer.music.unload()
             # pygame.mixer.music.load(path)
@@ -592,20 +594,28 @@ class MyWindow(QMainWindow):
         
     def generate_spectrogram(self, time_axis, sound_axis, fs,flag):
         if flag==1:
-            Pxx, frequencies, times, img = self.matplotlib_axes.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
+            frequencies, times, Pxx = spectrogram(sound_axis, fs)
             # Draw the Matplotlib figure
-            self.matplotlib_widget.draw()
-            # Clear the existing content in the Matplotlib figure
+            # self.matplotlib_widget.draw()
+            # self.matplotlib_axes.imshow(np.log(Sxx), aspect='auto', origin='lower', cmap='viridis')
+            # self.matplotlib_axes.set_xlabel('Time')
+            # self.matplotlib_axes.set_ylabel('Frequency (Hz)')
+            # self.matplotlib_widget.colorbar(self.matplotlib_axes.images[0])
+            # # Clear the existing content in the Matplotlib figure
             self.matplotlib_axes.clear()
             # Plot the spectrogram in the Matplotlib figure
             self.matplotlib_axes.pcolormesh(times, frequencies, 10 * np.log10(Pxx), shading='auto', cmap='viridis')
             self.matplotlib_axes.set_xlabel('Time (s)')
             self.matplotlib_axes.set_ylabel('Frequency (Hz)')
             self.matplotlib_axes.set_title('Spectrogram')
+            self.matplotlib_axes.set_aspect('auto')
+            self.matplotlib_widget.draw()
+            
         if flag==2:
-            Pxx, frequencies, times, img = self.matplotlib_axes2.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
+            # Pxx, frequencies, times, img = self.matplotlib_axes2.specgram(sound_axis, Fs=fs, cmap='viridis', NFFT=256, noverlap=128)
+            frequencies, times, Pxx = spectrogram(sound_axis, fs)
             # Draw the Matplotlib figure
-            self.matplotlib_widget2.draw()
+            # self.matplotlib_widget2.draw()
             # Clear the existing content in the Matplotlib figure
             self.matplotlib_axes2.clear()
             # Plot the spectrogram in the Matplotlib figure
@@ -613,9 +623,12 @@ class MyWindow(QMainWindow):
             self.matplotlib_axes2.set_xlabel('Time (s)')
             self.matplotlib_axes2.set_ylabel('Frequency (Hz)')
             self.matplotlib_axes2.set_title('Spectrogram')
-        # Update the colorbar
-        if hasattr(self.matplotlib_axes2, 'get_images') and len(self.matplotlib_axes2.get_images()) > 0:
-            self.matplotlib_figure.colorbar(self.matplotlib_axes2.get_images()[0], ax=self.matplotlib_axes2)
+            self.matplotlib_axes2.set_aspect('auto')
+            self.matplotlib_widget2.draw()
+            
+        # # Update the colorbar
+        # if hasattr(self.matplotlib_axes2, 'get_images') and len(self.matplotlib_axes2.get_images()) > 0:
+        #     self.matplotlib_figure.colorbar(self.matplotlib_axes2.get_images()[0], ax=self.matplotlib_axes2)
     
     def update_frequency_components(self):
         if self.ui.stackedWidget.currentIndex() == 1:
@@ -688,7 +701,7 @@ class MyWindow(QMainWindow):
             self.plotFrequencyDomain(frequency_axis,modified_spectrum,positive_freq_indices)
 
             # Compute the inverse Fourier Transform to get the modified signal
-            modified_signal = np.fft.ifft(modified_spectrum).real
+            modified_signal = np.fft.ifft(modified_spectrum)
 
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
