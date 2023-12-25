@@ -572,7 +572,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>Frequency divide amongest the 10 sliders</string>
+                    <string>Frequency divided among the 10 sliders</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -796,7 +796,7 @@
                 </size>
                </property>
                <property name="currentIndex">
-                <number>0</number>
+                <number>1</number>
                </property>
                <widget class="QWidget" name="page_5">
                 <layout class="QHBoxLayout" name="horizontalLayout_6">
