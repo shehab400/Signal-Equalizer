@@ -404,24 +404,41 @@ class MyWindow(QMainWindow):
             #Load filee, Plot, Convert Every track to frequency, get frequency ranges, update plot
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
-            data, fs = a2n.audio_from_file(path)
-            
-            self.input = PlotLine()
-            self.input.name = path
-            self.input.fs=fs
-            self.input.SetData(data,fs)
-            self.plotWidget1.clear()
-            self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
-            self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
-            self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
-            self.update_frequency_components()
-
+            if path.endswith(".csv"):
+                data = pd.read_csv(path, usecols=["Time", "Amplitude"])
+                self.input = PlotLine()
+                self.input.name = path
+                self.input.fs=101
+                # self.input.SetData(data,fs)
+                self.input.time_axis = data['Time']
+                self.input.sound_axis = data['Amplitude']
+                self.input.fft = np.fft.fft(self.input.sound_axis)
+                self.input.FrequencySamples = np.fft.fftfreq(len(self.input.sound_axis), 1/self.input.fs)
+                self.plotWidget1.clear()
+                self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+                self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
+                self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
+                self.update_frequency_components()
+                self.plotWidget1.setXRange(0,10,padding=0)
+                self.work_requested.emit(300)
+            else:
             # pygame.mixer.music.load(path)
             # pygame.mixer.music.play()
 
-            self.plotWidget1.setXRange(0,10,padding=0)
-
-            self.work_requested.emit(300)
+                data, fs = a2n.audio_from_file(path)
+                self.input = PlotLine()
+                self.input.name = path
+                self.input.fs=fs
+                self.input.SetData(data,fs)
+                self.plotWidget1.clear()
+                self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+                self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
+                self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
+                self.update_frequency_components()
+                # pygame.mixer.music.load(path)
+                # pygame.mixer.music.play()
+                self.plotWidget1.setXRange(0,10,padding=0)
+                self.work_requested.emit(300)
         elif self.ui.stackedWidget.currentIndex() == 3: 
             filename = QtWidgets.QFileDialog.getOpenFileName()
             path = filename[0]
@@ -719,6 +736,7 @@ class MyWindow(QMainWindow):
             # Get the minimum and maximum frequencies
             signal_min_freq = frequency_axis[positive_freq_indices].min()
             signal_max_freq = frequency_axis[positive_freq_indices].max()
+            print(signal_max_freq)
 
             # Get the slider values
             uniform_sliders = [
