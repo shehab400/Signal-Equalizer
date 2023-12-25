@@ -421,13 +421,14 @@ class MyWindow(QMainWindow):
             path = filename[0]
             self.input = PlotLine()
             direc = os.getcwd()
-            if path==direc + "/used arrhythemia signals/rec_1.dat":
+            #/used arrhythemia signals/rec_3.dat
+            if path.split('/')[-1]=="rec_1.dat":
                 self.input.arrhythmiaType=1
-            elif path==direc + "/used arrhythemia signals/rec_3.dat":
+            elif path.split('/')[-1]== "rec_3.dat":
                 self.input.arrhythmiaType=2
-            elif path==direc + "/used arrhythemia signals/rec_2.dat":
+            elif path.split('/')[-1]=="rec_2.dat":
                 self.input.arrhythmiaType=3
-            elif path==direc + "/used arrhythemia signals/rec_4.dat":
+            elif path.split('/')[-1]== "rec_4.dat":
                 self.input.arrhythmiaType=4
                 
             print(path)
@@ -818,7 +819,7 @@ class MyWindow(QMainWindow):
 
         # Get the slider values
         medical_sliders = [
-            self.mixedSlider1, self.mixedSlider2, self.mixedSlider3
+            self.mixedSlider1, self.mixedSlider2, self.mixedSlider3,self.mixedSlider4
         ]
 
         # Calculate the arrhythmia frequencies
@@ -848,44 +849,47 @@ class MyWindow(QMainWindow):
         # indices = np.where(np.isin(self.input.FrequencySamples[positive_freq_indices], list(arythmia_freq)))
         # indices = np.where((self.input.FrequencySamples[positive_freq_indices] >= 30) & (self.input.FrequencySamples[positive_freq_indices] <= 180))
         print(self.input.arrhythmiaType)
-        if self.input.arrhythmiaType==1:
-            freq_min=0
-            freq_max=69
-            amplification_factor = self.mixedSlider1.value() / 10.0  # Normalize the slider value to [0, 1]
-            if self.mixedSlider1.value()!=5:
-                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-                # modified_spectrum[top_indices] *= amplitude
-                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
-                modified_spectrum[indices] *= amplitude
+        # freq_min=0
+        # freq_max=69
+        frequency_ranges = [(0,69), (70,140) , (140,200) , (200 ,260)] 
+        for slider, (freq_min, freq_max) in zip(medical_sliders, frequency_ranges):
+            amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+            amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+        # amplification_factor = self.mixedSlider1.value() / 10.0  # Normalize the slider value to [0, 1]
+        # if self.mixedSlider1.value()!=5:
+            # amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+            # modified_spectrum[top_indices] *= amplitude
+            indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+            modified_spectrum[indices] *= amplitude
                 
             
-        if self.input.arrhythmiaType==2:
-            freq_min=70
-            freq_max=140
-            amplification_factor = self.mixedSlider2.value() / 10.0  # Normalize the slider value to [0, 1]
-            if self.mixedSlider2.value()!=5:
-                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-                # modified_spectrum[top_indices] *= amplitude
-                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
-                modified_spectrum[indices] *= amplitude
-        if self.input.arrhythmiaType==3:
-            freq_min=140
-            freq_max=200
-            amplification_factor = self.mixedSlider3.value() / 10.0  # Normalize the slider value to [0, 1]
-            if self.mixedSlider3.value()!=5:
-                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-                # modified_spectrum[top_indices] *= amplitude
-                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
-                modified_spectrum[indices] *= amplitude
-        if self.input.arrhythmiaType==4:
-            freq_min=200
-            freq_max=260
-            amplification_factor = self.mixedSlider4.value() / 10.0  # Normalize the slider value to [0, 1]
-            if self.mixedSlider4.value()!=5:
-                amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-                # modified_spectrum[top_indices] *= amplitude
-                indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
-                modified_spectrum[indices] *= amplitude
+        # if self.input.arrhythmiaType==2:
+        #     freq_min=70
+        #     freq_max=140
+        #     amplification_factor = self.mixedSlider2.value() / 10.0  # Normalize the slider value to [0, 1]
+        #     if self.mixedSlider2.value()!=5:
+        #         amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+        #         # modified_spectrum[top_indices] *= amplitude
+        #         indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+        #         modified_spectrum[indices] *= amplitude
+        # if self.input.arrhythmiaType==3:
+        #     freq_min=140
+        #     freq_max=200
+        #     amplification_factor = self.mixedSlider3.value() / 10.0  # Normalize the slider value to [0, 1]
+        #     if self.mixedSlider3.value()!=5:
+        #         amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+        #         # modified_spectrum[top_indices] *= amplitude
+        #         indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+        #         modified_spectrum[indices] *= amplitude
+        # if self.input.arrhythmiaType==4:
+        #     freq_min=200
+        #     freq_max=260
+        #     amplification_factor = self.mixedSlider4.value() / 10.0  # Normalize the slider value to [0, 1]
+        #     if self.mixedSlider4.value()!=5:
+        #         amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+        #         # modified_spectrum[top_indices] *= amplitude
+        #         indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+        #         modified_spectrum[indices] *= amplitude
                     
         # frequency_Ranges=[(0,80),(90,150),(160,260)]
         # for slider , (freq_min, freq_max) in  zip (medical_sliders,frequency_Ranges):
