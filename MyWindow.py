@@ -634,13 +634,6 @@ class MyWindow(QMainWindow):
                 modified_spectrum[pos_indices] *= amplification_factor
                 modified_spectrum[neg_indices] *= amplification_factor
             
-            # frequency_ranges = [(-100,0),(-250,-100),(-1200,-300),(-4186,-1200)]   
-            # for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
-            #     amplification_factor = slider.value() * 0.2
-
-            #     indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-            #     # Adjust the magnitude in the frequency domain
-            #     modified_spectrum[indices] *= amplification_factor
             self.plotFrequencyDomain(frequency_axis,modified_spectrum,positive_freq_indices)
 
             # Compute the inverse Fourier Transform to get the modified signal
@@ -659,34 +652,24 @@ class MyWindow(QMainWindow):
             original_spectrum = self.input.fft
             frequency_axis = self.input.FrequencySamples
             positive_freq_indices = np.where(frequency_axis > 0)
-            signal_min_freq = frequency_axis[positive_freq_indices].min()
-            signal_max_freq = frequency_axis[positive_freq_indices].max()
             Sliders = [self.mixedSlider1,self.mixedSlider2,self.mixedSlider3,self.mixedSlider4]
             frequency_ranges = [(10,700), (700,1600) , (1500,2500) , (2500 ,7000)] #lion, elephant cat dog
-            # frequency_ranges = [(10,1400),(1400,2500),(2500,4000),(4000,11000)] #lion, elephant cat dog
             modified_spectrum = np.copy(original_spectrum)
 
             for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
                 amplification_factor = slider.value() * 0.2
 
                 # Find the indices of the frequency range
-                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-
+                pos_indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+                neg_indices = np.where((frequency_axis >= -freq_max) & (frequency_axis <= -freq_min))
                 # Adjust the magnitude in the frequency domain
-                modified_spectrum[indices] *= amplification_factor
+                modified_spectrum[pos_indices] *= amplification_factor
+                modified_spectrum[neg_indices] *= amplification_factor
             
-            frequency_ranges = [(-700,-10),(-1600,-700),(-2500,-1500),(-7000,-2500)] #lion, elephant cat dog           
-            # frequency_ranges = [(-1400,-10),(-2500,-1400),(-4000,-2500) , (-11000,-4000)] #lion, elephant cat dog           
-            for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
-                amplification_factor = slider.value() * 0.2
-
-                indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-                # Adjust the magnitude in the frequency domain
-                modified_spectrum[indices] *= amplification_factor
             self.plotFrequencyDomain(frequency_axis,modified_spectrum,positive_freq_indices)
 
             # Compute the inverse Fourier Transform to get the modified signal
-            modified_signal = np.fft.ifft(modified_spectrum)
+            modified_signal = np.fft.ifft(modified_spectrum).real
 
             # Update the plot with the modified signal in the time domain
             self.plotWidget4.clear()
