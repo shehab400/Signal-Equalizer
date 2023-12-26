@@ -484,12 +484,16 @@ class MyWindow(QMainWindow):
             # Calculate the frequency axis
             fs = 500.0  # fs for any medical signal from physionet 
             self.input.FrequencySamples = np.fft.fftfreq(len(values), 1/fs)
+            self.input.positive_freq_indices = np.where(self.input.FrequencySamples > 0)
+            self.input.positive_freq_indices2 = np.where(self.input.uniform_fftfreq > 0)
+            arythmia_freq = set(self.input.FrequencySamples[self.input.positive_freq_indices]) - set(self.input.uniform_fftfreq[self.input.positive_freq_indices2])
+            self.input.arythmia_freq = np.array(list(arythmia_freq))
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.plotWidget1.setXRange(0,10,padding=0)
-            # self.update_frequency_components()
-            self.arrhythmiaRemoval()
+            self.update_frequency_components()
+            # self.arrhythmiaRemoval()
             self.work_requested.emit(300)
 
     
@@ -632,17 +636,21 @@ class MyWindow(QMainWindow):
         # if hasattr(self.matplotlib_axes2, 'get_images') and len(self.matplotlib_axes2.get_images()) > 0:
         #     self.matplotlib_figure.colorbar(self.matplotlib_axes2.get_images()[0], ax=self.matplotlib_axes2)
     
-    def updateFreqs(self,frequency_ranges,Sliders,frequency_axis,modified_spectrum,positive_freq_indices,flag):
-        if flag == 1:
+    def updateFreqs(self,frequency_ranges,Sliders,frequency_axis,modified_spectrum,positive_freq_indices,flag,Arr_Freq):
+        
             for slider, (freq_min, freq_max) in zip(Sliders, frequency_ranges):
-                amplification_factor = slider.value() * 0.2
+                amplification_factor = (slider.value() /10)* 2
 
                 # Find the indices of the frequency range
-                pos_indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
-                neg_indices = np.where((frequency_axis >= -freq_max) & (frequency_axis <= -freq_min))
+                if flag==1:
+                    pos_indices = np.where((frequency_axis >= freq_min) & (frequency_axis <= freq_max))
+                    neg_indices = np.where((frequency_axis >= -freq_max) & (frequency_axis <= -freq_min))
+                    modified_spectrum[neg_indices] *= amplification_factor
+                else:
+                    pos_indices=np.where((Arr_Freq >= freq_min) & (Arr_Freq <= freq_max))
                 # Adjust the magnitude in the frequency domain
                 modified_spectrum[pos_indices] *= amplification_factor
-                modified_spectrum[neg_indices] *= amplification_factor
+                   
             
             self.plotFrequencyDomain(frequency_axis,modified_spectrum,positive_freq_indices)
 
@@ -654,19 +662,24 @@ class MyWindow(QMainWindow):
             self.input.data_line = self.plotWidget4.plot(self.input.time_axis, modified_signal, name=self.input.name)
             self.plotWidget4.setLimits(xMin = 0,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
-            self.UpdateAudio(self.input.time_axis,modified_signal,self.input.fs)
+            if flag==1:
+                self.UpdateAudio(self.input.time_axis,modified_signal,self.input.fs)
             self.plotWidget3.setLabel('left', 'Amplitude')
             self.plotWidget3.setLabel('bottom', 'Frequency (Hz)')
-        else:
-            self.arrhythmiaRemoval()
+        
 
     def update_frequency_components(self):
         original_spectrum = self.input.fft
         frequency_axis = self.input.FrequencySamples
         positive_freq_indices = np.where(frequency_axis > 0)
+        Arr_Freq=self.input.arythmia_freq
         modified_spectrum = np.copy(original_spectrum)
         if self.ui.stackedWidget.currentIndex() == 3:
+            Sliders = [self.mixedSlider1, self.mixedSlider2, self.mixedSlider3,self.mixedSlider4] 
+            frequency_ranges = [(0,69), (70,140) , (140,200) , (200 ,260)] 
             flag = 2
+            # self.arrhythmiaRemoval()
+            # return
         elif self.ui.stackedWidget.currentIndex() == 1:
             Sliders = [self.mixedSlider1,self.mixedSlider2,self.mixedSlider3,self.mixedSlider4]
             frequency_ranges = [(300,1000),(900,3000),(0,300),(2000,10000)] #Piano,Guitar,Bass,Flute
@@ -698,7 +711,7 @@ class MyWindow(QMainWindow):
                 ) for i in range(10)
             ]
             flag = 1
-        self.updateFreqs(frequency_ranges,Sliders,frequency_axis,modified_spectrum,positive_freq_indices,flag)
+        self.updateFreqs(frequency_ranges,Sliders,frequency_axis,modified_spectrum,positive_freq_indices,flag,Arr_Freq)
         
     def plotFrequencyDomain(self,frequency_axis,modified_spectrum,positive_freq_indices):
         if self.whichWindowing == None:
@@ -748,43 +761,43 @@ class MyWindow(QMainWindow):
                 name='Modified Spectrum'
             )
 
-    def arrhythmiaRemoval(self):
-        original_spectrum = self.input.fft
-        modified_spectrum = original_spectrum.copy()  # Make a copy to avoid modifying the original
-        positive_freq_indices = np.where(self.input.FrequencySamples > 0)
-        positive_freq_indices2 = np.where(self.input.uniform_fftfreq > 0)
+    # def arrhythmiaRemoval(self):
+    #     original_spectrum = self.input.fft
+    #     modified_spectrum = original_spectrum.copy()  # Make a copy to avoid modifying the original
+    #     positive_freq_indices = np.where(self.input.FrequencySamples > 0)
+    #     positive_freq_indices2 = np.where(self.input.uniform_fftfreq > 0)
+    #     print(positive_freq_indices)
+    #     # Get the slider values
+    #     medical_sliders = [
+    #         self.mixedSlider1, self.mixedSlider2, self.mixedSlider3,self.mixedSlider4
+    #     ]
 
-        # Get the slider values
-        medical_sliders = [
-            self.mixedSlider1, self.mixedSlider2, self.mixedSlider3,self.mixedSlider4
-        ]
+    #     # Calculate the arrhythmia frequencies
+    #     arythmia_freq = set(self.input.FrequencySamples[positive_freq_indices]) - set(self.input.uniform_fftfreq[positive_freq_indices2])
+    #     # print(arythmia_freq)
+    #     arythmia_freq = np.array(list(arythmia_freq))
+    #     print(self.input.arrhythmiaType)
+    #     # freq_min=0
+    #     # freq_max=69
+    #     frequency_ranges = [(0,69), (70,140) , (140,200) , (200 ,260)] 
+    #     for slider, (freq_min, freq_max) in zip(medical_sliders, frequency_ranges):
+    #         amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
+    #         amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+    #     # amplification_factor = self.mixedSlider1.value() / 10.0  # Normalize the slider value to [0, 1]
+    #     # if self.mixedSlider1.value()!=5:
+    #         # amplitude = amplification_factor * 2  # Square the amplitude for increased effect
+    #         # modified_spectrum[top_indices] *= amplitude
+    #         indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
+    #         modified_spectrum[indices] *= amplitude
 
-        # Calculate the arrhythmia frequencies
-        arythmia_freq = set(self.input.FrequencySamples[positive_freq_indices]) - set(self.input.uniform_fftfreq[positive_freq_indices2])
-        # print(arythmia_freq)
-        arythmia_freq = np.array(list(arythmia_freq))
-        print(self.input.arrhythmiaType)
-        # freq_min=0
-        # freq_max=69
-        frequency_ranges = [(0,69), (70,140) , (140,200) , (200 ,260)] 
-        for slider, (freq_min, freq_max) in zip(medical_sliders, frequency_ranges):
-            amplification_factor = slider.value() / 10.0  # Normalize the slider value to [0, 1]
-            amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-        # amplification_factor = self.mixedSlider1.value() / 10.0  # Normalize the slider value to [0, 1]
-        # if self.mixedSlider1.value()!=5:
-            # amplitude = amplification_factor * 2  # Square the amplitude for increased effect
-            # modified_spectrum[top_indices] *= amplitude
-            indices = np.where((arythmia_freq >= freq_min) & (arythmia_freq <= freq_max))
-            modified_spectrum[indices] *= amplitude
+    #     self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum, positive_freq_indices)
+    #     # Compute the inverse Fourier Transform to get the modified signal
+    #     modified_signal = np.fft.ifft(modified_spectrum).real
 
-        self.plotFrequencyDomain(self.input.FrequencySamples, modified_spectrum, positive_freq_indices)
-        # Compute the inverse Fourier Transform to get the modified signal
-        modified_signal = np.fft.ifft(modified_spectrum).real
-
-        # Update the plot with the modified signal in the time domain
-        self.plotWidget4.clear()
-        self.input.data_line = self.plotWidget4.plot(
-            self.input.time_axis, modified_signal, name=self.input.name
-        )
-        self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
+    #     # Update the plot with the modified signal in the time domain
+    #     self.plotWidget4.clear()
+    #     self.input.data_line = self.plotWidget4.plot(
+    #         self.input.time_axis, modified_signal, name=self.input.name
+    #     )
+    #     self.generate_spectrogram(self.input.time_axis,modified_signal,self.input.fs,2)
 
