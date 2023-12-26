@@ -14,6 +14,9 @@ class PlotLine:
         self.uniform_fftfreq=None
         self.uniform_fft=None
         self.arrhythmiaType=0
+        self.positive_freq_indices=None
+        self.positive_freq_indices2=None
+        self.arythmia_freq=None
 
     def SetData(self,data, fs):
         n = len(data)  # the length of the arrays contained in data
