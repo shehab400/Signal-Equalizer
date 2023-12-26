@@ -3,7 +3,7 @@ from PyQt5.QtCore import QThread,QObject,pyqtSignal as Signal, pyqtSlot as Slot
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget, plot
-from PyQt5.QtWidgets import QApplication,QMainWindow,QVBoxLayout,QPushButton,QWidget,QErrorMessage,QMessageBox,QDialog,QScrollBar,QSlider
+from PyQt5.QtWidgets import QApplication,QMainWindow,QVBoxLayout,QPushButton,QWidget,QErrorMessage,QMessageBox,QDialog,QScrollBar,QSlider,QLabel
 import simpleaudio as sa
 import sys
 from scipy.io.wavfile import read
@@ -31,7 +31,7 @@ from scipy.signal import spectrogram
 
 windowSize = 1000
 ep=1e-10
-gaussian_std = 5
+gaussian_std = 0
 x_axis = None
 window = None
 
@@ -108,6 +108,7 @@ class MyWindow(QMainWindow):
         self.worker_thread.start()
 
         #
+        self.GaussSlider = self.findChild(QSlider, "horizontalSlider")
         self.uniformSlider1 = self.findChild(QSlider, "verticalSlider")
         self.uniformSlider2 = self.findChild(QSlider, "verticalSlider_2")
         self.uniformSlider3 = self.findChild(QSlider, "verticalSlider_3")
@@ -118,6 +119,7 @@ class MyWindow(QMainWindow):
         self.uniformSlider8 = self.findChild(QSlider, "verticalSlider_8")
         self.uniformSlider9 = self.findChild(QSlider, "verticalSlider_9")
         self.uniformSlider10 = self.findChild(QSlider, "verticalSlider_10")
+        self.GaussLabel = self.findChild(QLabel, "gaussNum")
         self.mixedSlider1 = self.findChild(QSlider, "verticalSlider_11")
         self.mixedSlider2 = self.findChild(QSlider, "verticalSlider_12")
         self.mixedSlider3 = self.findChild(QSlider, "verticalSlider_13")
@@ -133,6 +135,7 @@ class MyWindow(QMainWindow):
         self.ui.uniformSlider8.setMinimum(0)
         self.ui.uniformSlider9.setMinimum(0)
         self.ui.uniformSlider10.setMinimum(0)
+        self.ui.horizontalSlider.setMinimum(1)
         self.ui.mixedSlider1.setMinimum(0)
         self.ui.mixedSlider2.setMinimum(0)
         self.ui.mixedSlider3.setMinimum(0)
@@ -148,6 +151,7 @@ class MyWindow(QMainWindow):
         self.uniformSlider8.setMaximum(10)
         self.uniformSlider9.setMaximum(10)
         self.uniformSlider10.setMaximum(10)
+        self.ui.horizontalSlider.setMaximum(100)
         self.mixedSlider1.setMaximum(10)
         self.mixedSlider2.setMaximum(10)
         self.mixedSlider3.setMaximum(10)
@@ -183,11 +187,13 @@ class MyWindow(QMainWindow):
         self.mixedSlider3.setTickPosition(QSlider.TicksLeft)
         self.mixedSlider4.setTickPosition(QSlider.TicksLeft)
         # connect sliders to the function
+        self.GaussSlider.valueChanged.connect(self.gaussSliderFunc)
         for slider in [self.mixedSlider1,self.mixedSlider2,self.mixedSlider3,self.mixedSlider4]:
             slider.valueChanged.connect(self.update_frequency_components)
         for slider in [self.uniformSlider1, self.uniformSlider2, self.uniformSlider3, self.uniformSlider4,self.uniformSlider5, self.uniformSlider6, self.uniformSlider7, self.uniformSlider8,self.uniformSlider9, self.uniformSlider10]:
             slider.valueChanged.connect(self.update_frequency_components)
         #
+        # self.horizontalSlider.setTickPosition(QSlider.TicksBelow)
         self.plotWidget1 = pg.PlotWidget()
         self.plotWidget2 = pg.PlotWidget()
         self.plotWidget3 = pg.PlotWidget()
@@ -256,9 +262,17 @@ class MyWindow(QMainWindow):
         self.plotWidget6.clear()
         self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
 
+    def gaussSliderFunc(self,value):
+        global gaussian_std
+        if self.whichWindowing == 4:
+            self.GaussSlider.setValue(value)
+            self.GaussLabel.setText(str(value))
+            gaussian_std = int(value)
+            self.gaussFunc()
+
     def gaussFunc(self):
         self.whichWindowing = 4
-        window = np.exp(-(0.5 * ((windowSize - 1) / 2 - np.arange(windowSize)) / (gaussian_std * (windowSize -1)/2))**2)
+        window = np.exp(-(0.5 * ((windowSize - 1) / 2 - np.arange(windowSize)) / (gaussian_std/20 * (windowSize -1)/2))**2)
         x = np.arange(windowSize)
         self.plotWidget6.clear()
         self.plotWidget6.plot( x, window, title='Rectangular Smoothing Window')
