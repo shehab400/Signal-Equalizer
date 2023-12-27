@@ -357,7 +357,8 @@ class MyWindow(QMainWindow):
         url = QtCore.QUrl.fromLocalFile("test.mp3")
         self.MediaPlayer.setMedia(QtMultimedia.QMediaContent(url))
         self.MediaPlayer.setPosition(pos)
-        self.MediaPlayer.play()
+        if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
+            self.MediaPlayer.play()
 
     def Load(self):
         if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
@@ -490,6 +491,7 @@ class MyWindow(QMainWindow):
             self.input.arythmia_freq = np.array(list(arythmia_freq))
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.plotWidget1.setXRange(0,10,padding=0)
             self.update_frequency_components()
@@ -710,7 +712,7 @@ class MyWindow(QMainWindow):
                     signal_min_freq + (i + 1) * (signal_max_freq - signal_min_freq) / 10
                 ) for i in range(10)
             ]
-            flag = 1
+            flag = 2
         self.updateFreqs(frequency_ranges,Sliders,frequency_axis,modified_spectrum,positive_freq_indices,flag,Arr_Freq)
         
     def plotFrequencyDomain(self,frequency_axis,modified_spectrum,positive_freq_indices):
