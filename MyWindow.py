@@ -354,10 +354,10 @@ class MyWindow(QMainWindow):
             os.remove("test.mp3")
         sound.export("test.mp3", format="mp3")
         self.timePos += pos
-        url = QtCore.QUrl.fromLocalFile("test.mp3")
-        self.MediaPlayer.setMedia(QtMultimedia.QMediaContent(url))
-        self.MediaPlayer.setPosition(pos)
         if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
+            url = QtCore.QUrl.fromLocalFile("test.mp3")
+            self.MediaPlayer.setMedia(QtMultimedia.QMediaContent(url))
+            self.MediaPlayer.setPosition(pos)
             self.MediaPlayer.play()
 
     def Load(self):
@@ -712,7 +712,7 @@ class MyWindow(QMainWindow):
                     signal_min_freq + (i + 1) * (signal_max_freq - signal_min_freq) / 10
                 ) for i in range(10)
             ]
-            flag = 2
+            flag = 1
         self.updateFreqs(frequency_ranges,Sliders,frequency_axis,modified_spectrum,positive_freq_indices,flag,Arr_Freq)
         
     def plotFrequencyDomain(self,frequency_axis,modified_spectrum,positive_freq_indices):
