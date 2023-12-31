@@ -354,10 +354,11 @@ class MyWindow(QMainWindow):
             os.remove("test.mp3")
         sound.export("test.mp3", format="mp3")
         self.timePos += pos
-        url = QtCore.QUrl.fromLocalFile("test.mp3")
-        self.MediaPlayer.setMedia(QtMultimedia.QMediaContent(url))
-        self.MediaPlayer.setPosition(pos)
-        self.MediaPlayer.play()
+        if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
+            url = QtCore.QUrl.fromLocalFile("test.mp3")
+            self.MediaPlayer.setMedia(QtMultimedia.QMediaContent(url))
+            self.MediaPlayer.setPosition(pos)
+            self.MediaPlayer.play()
 
     def Load(self):
         if self.ui.stackedWidget.currentIndex() == 1 or self.ui.stackedWidget.currentIndex() == 2:
@@ -490,6 +491,7 @@ class MyWindow(QMainWindow):
             self.input.arythmia_freq = np.array(list(arythmia_freq))
             self.plotWidget1.clear()
             self.input.data_line = self.plotWidget1.plot(self.input.time_axis,self.input.sound_axis,name=self.input.name)
+            self.plotWidget1.setLimits(xMin = 0 ,xMax = self.input.time_axis.max())
             self.generate_spectrogram(self.input.time_axis,self.input.sound_axis,self.input.fs,1)
             self.plotWidget1.setXRange(0,10,padding=0)
             self.update_frequency_components()
